@@ -1,0 +1,11 @@
+{
+  "name": "help4timeBook",
+  "version": "0.0.1",
+  "private": false,
+  "dependencies": {
+    "express": "^4.17.1",
+    "liteql": "^0.2.1"
+  },
+  "main": "index.js",
+  "license": "ISC"
+}
