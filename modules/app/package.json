@@ -1,0 +1,8 @@
+{
+  "name": "app",
+  "version": "0.1.0",
+  "private": false,
+  "dependencies": {},
+  "license": "ISC",
+  "browser" : "client.js"
+}

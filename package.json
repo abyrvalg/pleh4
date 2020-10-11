@@ -1,10 +1,18 @@
 {
-  "name": "help4timeBook",
+  "name": "help4",
   "version": "0.0.1",
   "private": false,
   "dependencies": {
     "express": "^4.17.1",
-    "liteql": "^0.2.1"
+    "liteql": "^0.2.1",
+    "body-parser": "^1.18.3",
+    "browserify": "^16.2.3",
+    "cookie-parser": "^1.4.4",
+    "handlebars": "^4.0.11",
+    "redis": "^2.8.0",
+    "socket.io": "^2.2.0",
+    "winston": "^3.2.1",
+    "pg": "^8.4.0"
   },
   "scripts": {
     "start": "node index.js"

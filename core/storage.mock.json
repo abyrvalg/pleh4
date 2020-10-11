@@ -1,0 +1,148 @@
+{
+   "task":{
+      "123":{
+         "id":123,
+         "title":"testTask",
+         "type":"scratch",
+         "description":"Test task description",
+         "custom":{
+            "availableBlocks":[
+               "move",
+               "if",
+               "loop",
+               "turn"
+            ],
+            "acceptence":[
+               {
+                  "maxMove":5
+               },
+               {
+                  "position":{
+                     "ebobo":[
+                        25,
+                        25
+                     ]
+                  }
+               },
+               {
+                  "map":{
+                     "wall":[
+
+                     ]
+                  }
+               }
+            ],
+            "agents":[
+               {
+                  "ebobo":{
+                     "starts":[
+                        1,
+                        1
+                     ],
+                     "looks":"right",
+                     "creates":[
+                        "tree"
+                     ],
+                     "destroys":[
+                        "wall"
+                     ]
+                  }
+               }
+            ],
+            "map":{
+               "size":[
+                 	15,
+                    15
+               ],
+               "mainBlock":"grass",
+               "blocks":{
+			   		"brick":[1, 50, 40, 25],
+               		"watter":[2, 7, 47, 80, 53, 20, 88]
+               }
+            }
+         }
+      }
+   },
+   "scratchAgennt":{
+      "ebobo":{
+         "costumes":[
+
+         ]
+      }
+   },
+   "scratchMapBlock":{
+      "grass":{
+         "sprite":"/img/scratch/sprites/grass.png",
+         "crossable":true
+      },
+      "watter" : {
+      	"sprite" : "/img/scratch/sprites/watter.png",
+      	"crossable" : false
+      },
+      "brick" : {
+      	"sprite" : "/img/scratch/sprites/brick.png",
+      	"crossable" : false
+      } 
+   },
+   "scratchCodeBlock":{
+      "if":{
+         "id":"if",
+         "type":"operator",
+         "group":"controll",
+         "wrapsBlocks":[
+            "body"
+         ],
+         "params":[
+            {
+               "name":"condition",
+               "type":"string"
+            }
+         ],
+         "markup":"<polygon points=\"200,10 250,190 160,210\" style=\"fill:lime;stroke:purple;stroke-width:1\" />"
+      },
+      "ifelse":{
+         "based":"if",
+         "wrapsBlocks":[
+            "body",
+            "elseBody"
+         ],
+         "markup":""
+      },
+      "loop":{
+         "id":"loop",
+         "wrapper":true,
+         "params":[
+            {
+               "name":"iterations",
+               "type":"number"
+            }
+         ]
+      },
+      "move":{
+         "id":"move",
+         "wrapper":false,
+         "params":[
+            {
+               "name":"steps",
+               "type":"number"
+            }
+         ]
+      },
+      "turn":{
+         "id":"turn",
+         "wrapper":false,
+         "params":[
+            {
+               "name":"direction",
+               "type":"string",
+               "options":[
+                  "right",
+                  "left",
+                  "up",
+                  "down"
+               ]
+            }
+         ]
+      }
+   }
+}

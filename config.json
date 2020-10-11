@@ -1,0 +1,10 @@
+{
+	"sessionExpirationTimeHours":1,
+	"sessionStorage":"memory",
+	"noDB":true,
+	"cartridgePath":["base"],
+	"logTarget" : "file",
+	"logLevels" : ["error", "warn", "debug", "fatal"],
+	"host" : "http://localhost:5000",
+	"staticFolder" : "public"
+}
