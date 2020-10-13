@@ -3,17 +3,16 @@ $ = require('liteql');
 module.exports = {
 	index : ($)=>{return {"hello":"world"}},
 	testDB : ($)=>{
-		const { Pool, Client } = require('pg')
-		// pools will use environment variables
-		// for connection information
-		const pool = new Pool()
-		return pool.query('SELECT NOW()').then((res)=>{
-			console.log(res);
-			return "success";
-		}).catch(err=>{
-			console.log("WAAAAAT");
-			console.log(err);
-			return err;
+		const { Client } = require('pg');
+
+		const client = new Client({
+		  connectionString: process.env.DATABASE_URL,
+		  ssl: {
+			rejectUnauthorized: false
+		  }
 		});
+
+		client.connect();
+		return client.query('SELECT NOW()').catch(err=>err);
 	}
 }
