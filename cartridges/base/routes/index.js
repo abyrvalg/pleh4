@@ -13,7 +13,7 @@ module.exports = {
 		}).catch(err=>{
 			console.log("WAAAAAT");
 			console.log(err);
-			return "fail"
+			return err;
 		});
 	}
 }
