@@ -5,3 +5,5 @@ logs/*
 npm-debug.log*
 /.project
 static/js/*
+.env
+package-lock.json

@@ -3,7 +3,12 @@ const PATH = require('path');
 global.APP_ROOT = PATH.resolve(__dirname);
 const app = express();
 const LiteQL = require('liteql');
-
+try{
+	require("dotenv").config();
+}
+catch(e){
+	
+}
 var	onStart = require(APP_ROOT+"/modules/app")('hook').getHooks('onServerStart'),
 	onRequest = require(APP_ROOT+"/modules/app")('hook').getHooks('onRequest'),
   session = require(APP_ROOT+"/modules/app")('session');
@@ -64,7 +69,7 @@ function start() {
 			var $ = session.getVal(req, 'liteql') || session.setVal(req, 'liteql', new LiteQL()),
 				path = req.path.replace(/\./g, ''),
 				match = path.match(/((?:\/\w+)+)?\/(\w+)$/),
-				resultPromise = $.call({'@set': ['SID',session.getSID(req)]});
+				resultPromise = $.call({'@set': ['SID',session.getSID(req)]}).then(r=>"404");
 			for(let key in CONFIG.cartridgePath) {
 				try{
 					var route = require('./cartridges/'+CONFIG.cartridgePath[key]+'/routes'+(match && match[1] || '/index'))[match && match[2] || 'index'];	
@@ -73,8 +78,10 @@ function start() {
 					continue;
 				}
 				try{
-					resultPromise = resultPromise.then(()=>route($, req.query, req));
-					break;
+					if(route){
+						resultPromise = resultPromise.then(()=>route($, req.query, req));
+						break;
+					}
 				}
 				catch(e){
 					LOGGER.error(e);
@@ -85,6 +92,7 @@ function start() {
 					res.send(result);
 				}).catch((e)=>{
 					LOGGER.error(e);
+					res.send('404');
 				});
 			} else {
 				LOGGER.error("cannot process route: "+path);
