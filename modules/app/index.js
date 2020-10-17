@@ -11,8 +11,9 @@ module.exports = (path, params)=>{
 				+'Model.js')
 			}
 			catch(e){
+				console.log(e);
 			}
-			return Promise.resolve(model && model(require("app")));				
+			return Promise.resolve(model);				
 		}
 		return params ? modelFactory.get(params) : modelFactory;
 	}

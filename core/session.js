@@ -1,6 +1,6 @@
 const CONFIG = require(APP_ROOT+"/modules/app")('config');
 const LOGGER = require(APP_ROOT+"/modules/app")('logger');
-const REDIS_CLIENT = CONFIG.sessionStorage != 'memory' ? require('redis').createClient() : (()=>{
+const SESSION_STORAGE_CLIENT = CONFIG.sessionStorage != 'memory' ? require('redis').createClient() : (()=>{
 	var sessionStorage = {};
 	return{
 		set(key, val){
@@ -18,9 +18,9 @@ var sessions = {}
 function setSession(req, res){
 	let sid = getSid(32);
 	res.cookie('sid', sid, {httpOnly : true, expires : new Date(Date.now() + SESSION_EXP_TIME*1000)});
-	REDIS_CLIENT.set('session_'+sid, '{}', 'EX', SESSION_EXP_TIME);
+	SESSION_STORAGE_CLIENT.set('session_'+sid, '{}', 'EX', SESSION_EXP_TIME);
 	req.cookies['sid'] = sid;
-	
+	return sid;
 }
 
 function onSession(req, res, next) {
@@ -45,15 +45,28 @@ function getSid(length) {
 	return text;
 }
 
+class Session {
+	constructor(sid){
+		this.sid = sid;
+		this.scope = new Map();
+	}
+	setVar(key, val){
+		this.scope.set(key, val);
+	}
+	getVar(key){
+		return this.scope.get(key);
+	}
+}
 module.exports = {
 	check(req, res, next){
 		if(req.cookies && req.cookies['sid']){
-			REDIS_CLIENT.get('session_'+req.cookies['sid'], (err, data)=>{
+			SESSION_STORAGE_CLIENT.get('session_'+req.cookies['sid'], (err, data)=>{
 				if(err){
 					LOGGER.error(err);
 				}
 				if(!data){
-					setSession(req, res);
+					let sid = setSession(req, res);
+					sessions[sid] = new Session(sid);
 					onSession(req, res, next);
 				}
 				else{
@@ -62,7 +75,8 @@ module.exports = {
 			})
 		}
 		else{
-			setSession(req, res);
+			let sid = setSession(req, res);
+			sessions[sid] = new Session(sid);
 			onSession(req, res, next);
 		}		
 	},
@@ -71,8 +85,7 @@ module.exports = {
 		if(!sid) {
 			return;
 		}
-		sessions[sid] = sessions[sid] || {};
-		sessions[sid][key] = val;
+		sessions[sid].setVar(key, val);
 		
 		return val;
 	},
@@ -81,9 +94,12 @@ module.exports = {
 		if(!sid) {
 			return;
 		}
-		return sessions[sid] && sessions[sid][key];
+		return sessions[sid] && sessions[sid].getVar(key);
 	},
 	getSID(req){
 		return req && req.cookies && req.cookies['sid'];
+	},
+	get(req){
+		return sessions[this.getSID(req)];
 	}
 }

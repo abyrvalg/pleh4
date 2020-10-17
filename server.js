@@ -79,7 +79,11 @@ function start() {
 				}
 				try{
 					if(route){
-						resultPromise = resultPromise.then(()=>route($, req.query, req));
+						resultPromise = resultPromise.then(()=>route({
+							"req" : req,
+							"res" : res,
+							"session" : session.get(req)
+						}));
 						break;
 					}
 				}

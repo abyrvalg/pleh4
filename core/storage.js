@@ -33,7 +33,7 @@ module.exports = {
 				});
 			}
 			else if(mode == "pg"){
-				return client.query(obj.query).then(res=>{		
+				return client.query(obj.query, obj.params).then(res=>{		
 					return res.rows;			
 				}).catch(err=>{
 					console.log(err);
