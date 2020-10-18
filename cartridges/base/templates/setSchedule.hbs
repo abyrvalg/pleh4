@@ -1,3 +1,46 @@
 <div>
-	hi {{name}}
+	<div class="title">{{therapist.name}}</div>
+	<div>
+		<div>Общие настройки</div>
+		<div>
+			<div>Месяц</div>
+			<select id="month" name="month">
+				{{#each months}}
+					<option value="{{MY}}">{{M}}</option>
+				{{/each}}
+			</select>
+		</div>
+		<div>
+			<div>Выходные</div>
+			<div>
+				<input type="checkbox" id="day_off_monday" name="day_off_monday" value="MD">
+				<label for="day_off_monday">Понедельник</label>
+				<input type="checkbox" id="day_off_tuesday" name="day_off_tuesday" value="TU">
+				<label for="day_off_tuesday">Вторник</label>
+				<input type="checkbox" id="day_off_wensday" name="day_off_wensday" value="WE">
+				<label for="day_off_wensday">Среда</label>
+				<input type="checkbox" id="day_off_thursday" name="day_off_thursday" value="TH">
+				<label for="day_off_thursday">Четверг</label>
+				<input type="checkbox" id="day_off_friday" name="day_off_friday" value="FR">
+				<label for="day_off_friday">Пятница</label>
+				<input type="checkbox" id="day_off_saturday" name="day_off_saturday" value="SA">
+				<label for="day_off_saturday">Суббота</label>
+				<input type="checkbox" id="day_off_sunday" name="day_off_sunday" value="SU">
+				<label for="day_off_sunday">Воскресенье</label>
+			</div>
+		</div>
+	</div>
+	{{#each months}}
+		<div class="current_month">
+			<div class="current_month_header">
+				{{#each days}}
+					<span>{{date}}</span>{{#if day}} {{else}} <br/>{{/if}}
+				{{/each}}
+			</div>
+		</div>
+	{{/each}}
+	<div class="time">
+		<input type="checkbox" name="hours_0"/>
+		<label for="hours_0">10-11</label>
+	</div>
 </div>

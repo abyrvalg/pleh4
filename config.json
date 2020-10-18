@@ -5,6 +5,8 @@
 	"cartridgePath":["base"],
 	"logTarget" : "file",
 	"logLevels" : ["error", "warn", "debug", "fatal"],
-	"host" : "http://localhost:5000",
-	"staticFolder" : "public"
+	"host" : "http://localhost",
+	"staticFolder" : "public",
+	"gCalendarClientID" : "233878766692-bogtu1igires1bvdfalps6ap0i21c5ud.apps.googleusercontent.com",
+	"gCalendarsecret" : "IJOlrKtoCSFCI9gS5TbGyglw"
 }
