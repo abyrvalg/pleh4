@@ -1,4 +1,5 @@
 const mocks = require('./storage.mock');
+const LOGGER = require(APP_ROOT+"/modules/app")('logger');
 const mode = "pg";
 if(mode == "pg"){
 	const { Client } = require('pg');
@@ -36,8 +37,8 @@ module.exports = {
 				return client.query(obj.query, obj.params).then(res=>{		
 					return res.rows;			
 				}).catch(err=>{
-					console.log(err);
-					return err;
+					LOGGER.error(err);
+					return null;
 				});
 			}
 		}
