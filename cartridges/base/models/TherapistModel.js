@@ -1,3 +1,5 @@
+const { compile } = require("handlebars");
+
 class TherapistModel {
 	constructor(obj){
 		this.obj = {
@@ -19,18 +21,13 @@ class TherapistModel {
 	}
 	static createDefaultSchedule(yearMonth){
 		var monthStr = ""+yearMonth,
-			date = new Date(),
-			schedule = 0,
+			date = new Date("20"+monthStr.substr(0,2)+"-"+monthStr.substr(2,2)+"-01T00:00"),
+			schedule = BigInt(0),
 			i = 0;
-
-		date.setFullYear(+("20"+monthStr.substr(0,2)));
-		date.setMonth(+(monthStr.substr(2,2))-1);
-		date.setDate(1);
-		date.setHours(0);
 		var month = date.getMonth();
 		while(month == date.getMonth()){
-			if(!~[0, 6].indexOf(date.getDay()) && date.getHours() > 9 && date.getHours() < 18){
-				schedule += Math.pow(2, i);
+			if(!~[0, 6].indexOf(date.getDay()) && date.getHours() >= 9 && date.getHours() < 18){
+				schedule = schedule + BigInt(Math.pow(2, i));
 			}
 			i++;
 			date.setHours(date.getHours()+1);

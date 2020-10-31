@@ -24,18 +24,19 @@ module.exports = {
 					monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 				for (let i = 1; i <= MONTH_FORWARD_TO_SET; i++){
 					let currentMonth = now.getMonth(),
-						days = [];
-						currentMonthSchedule = therapist.getSchedule(getYearMonth(now)) || Therapist.createDefaultSchedule(getYearMonth(now)),
-						currentMonthScheduleBin = currentMonthSchedule.toString(2).split().reverse().join();					
-					for(let j = 1; j<=31; j++){		
+						days = []
+						currentMonthSchedule = therapist.getSchedule(getYearMonth(now)) || Therapist.createDefaultSchedule(getYearMonth(now));
+					for(let j = i == 1 ? now.getDate() : 0; j<=31; j++){		
 						let hours = [];
-						for(let k = 0; k < 24; k++){
+						for(let k = 0; k < 24; k++){	
+							let counter = j*24+k;				
 							hours.push({
 								hour : k,
 								fromTo : k + " - "+(k+1),
-								work : currentMonthScheduleBin[j*(1+k)] == "1"
+								work : !!(currentMonthSchedule/BigInt(Math.pow(2, counter)) % 2n),
+								num : counter
 							});
-						}			
+						}
 						days.push({
 							date : now.getDate(),
 							day : now.getDay(),

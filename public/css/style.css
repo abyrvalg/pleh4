@@ -1,0 +1,18 @@
+.hidden{
+    display: none;
+}
+.day_of_week_0{
+   color:red; 
+}
+.day_of_week_6{
+    color:red; 
+ }
+ .left{
+     float: left;
+ }
+ .time_legend div{
+    height: 22px;
+ }
+ .row{
+    margin:3px;
+}

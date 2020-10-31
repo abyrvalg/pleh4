@@ -1,10 +1,14 @@
+<head>
+	<script src="/js/calendar.js"></script>
+	<link rel="stylesheet" href="/css/style.css">
+</head>
 <div>
 	<div class="title">{{therapist.name}}</div>
 	<div>
 		<div>Общие настройки</div>
 		<div>
 			<div>Месяц</div>
-			<select id="month" name="month">
+			<select id="head_month" name="month">
 				{{#each months}}
 					<option value="{{MY}}">{{M}}</option>
 				{{/each}}
@@ -30,17 +34,45 @@
 			</div>
 		</div>
 	</div>
+	<div class="left time_legend">
+		<div>Время</div>
+		<div>00:00 - 01:00</div>
+		<div>01:00 - 02:00</div>
+		<div>02:00 - 03:00</div>
+		<div>03:00 - 04:00</div>
+		<div>04:00 - 05:00</div>
+		<div>05:00 - 06:00</div>
+		<div>06:00 - 07:00</div>
+		<div>07:00 - 08:00</div>
+		<div>08:00 - 09:00</div>
+		<div>09:00 - 10:00</div>
+		<div>10:00 - 11:00</div>
+		<div>11:00 - 12:00</div>
+		<div>12:00 - 13:00</div>
+		<div>13:00 - 14:00</div>
+		<div>14:00 - 15:00</div>
+		<div>15:00 - 16:00</div>
+		<div>16:00 - 17:00</div>
+		<div>17:00 - 18:00</div>
+		<div>18:00 - 19:00</div>
+		<div>19:00 - 20:00</div>
+		<div>20:00 - 21:00</div>
+		<div>21:00 - 22:00</div>
+		<div>22:00 - 23:00</div>
+		<div>23:00 - 24:00</div>
+	</div>
 	{{#each months}}
-		<div class="current_month">
-			<div class="current_month_header">
+		<div class="left month_sheet" data-val="{{MY}}">
+			<div class="month_sheet_header">
 				{{#each days}}
-					<span>{{date}}</span>{{#if day}} {{else}} <br/>{{/if}}
+					<span class="left day_of_week_{{day}}">{{date}}
+						{{#each hours}}
+							<div class="row"> <input value="{{num}}" class="slot" name="slot_{{hour}}" type="checkbox" {{#if work}}checked{{/if}}/></div>
+						{{/each}}
+					</span>
 				{{/each}}
 			</div>
 		</div>
 	{{/each}}
-	<div class="time">
-		<input type="checkbox" name="hours_0"/>
-		<label for="hours_0">10-11</label>
-	</div>
 </div>
+<div><input type="submit" name="submit_schedule" value="Отправить"/></div>
