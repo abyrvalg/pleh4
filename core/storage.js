@@ -42,5 +42,66 @@ module.exports = {
 				});
 			}
 		}
+	},
+	upsert(obj){
+		if(mode == "pg"){
+			client.query("select "+obj.fields.join(",")+" from public."+obj.table+" where "+obj.where, obj.params).then(res=>{
+				let rows = res.rows,
+					insertQueryFields,
+					insertParams = [],
+					updateParams = [],
+					updateQuery;				
+				obj.setVals.forEach(setVal=>{
+					let match = false,
+						where = [];
+					rows.forEach(row=>{
+						match = true;
+						for(let key in setVal.conditions){								
+							if(row[key] != setVal.conditions[key]){
+								match = false;
+								break;
+							}								
+						}
+					});							 
+					if(match) {
+						for(let key in setVal.condition){	
+							updateParams.push(setVal.condition[key]);
+							where.push(key +"= $"+updateParams.length);
+						}			
+						for(let key in setVal.values){
+							updateQuery = updateQuery || [];
+							updateParams.push(setVal.values[key])
+							updateQuery.push(obj.fieldsToSet[key] +"=$"+updateParams.length);
+						}
+						updateQuery = "update public."+obj.table+" set "+updateQuery.join(",")+" where "+where.join(" and ")
+					}
+					else {
+						insertQueryFields = insertQueryFields || [];
+						insertQueryFields.push([]);
+						for(let key in setVal.values){								
+							insertParams.push(setVal.values[key]);
+							insertQueryFields[insertQueryFields.length - 1].push("$"+insertParams.length);
+						}
+					}
+
+				});
+				return (!updateQuery ? Promise.resolve() : client.query(updateQuery, updateParams)).then(res=>{
+					if(!insertQueryFields) {
+						return res;
+					}
+					let subqueries = [];
+					insertQueryFields.forEach(fields=>{
+						subqueries.push("("+fields.join(",")+")");
+					});
+					return client.query("insert into public."+obj.table+"  ("+obj.fieldsToSet.join(",")+") values "+subqueries, insertParams).then(r=>{
+						return r;
+					});
+				});
+
+			}).catch(err=>{
+				LOGGER.error(err);
+				throw err;
+			});
+		}
 	}
 }

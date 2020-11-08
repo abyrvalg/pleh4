@@ -2,11 +2,8 @@ const { compile } = require("handlebars");
 
 class TherapistModel {
 	constructor(obj){
-		this.obj = {
-			name : obj.first_name + " " +obj.last_name,
-			email : obj.email,
-			price : obj.price
-		};
+		this.obj = obj;
+		this.obj.name = obj.first_name+ " "+obj.last_name;
 	}
 	getSchedule(month){
 		if(!month || !this.obj.schedules) {
@@ -14,13 +11,13 @@ class TherapistModel {
 		}
 		for(let i in this.obj.schedules){
 			if(this.obj.schedules[i].month == month){
-				return this.obj.schedules[i];
+				return BigInt(this.obj.schedules[i].schedule);
 			}
 		}
 		return null;
 	}
 	static createDefaultSchedule(yearMonth){
-		var monthStr = ""+yearMonth,
+		var monthStr = ""+(yearMonth+1),
 			date = new Date("20"+monthStr.substr(0,2)+"-"+monthStr.substr(2,2)+"-01T00:00"),
 			schedule = BigInt(0),
 			i = 0;
@@ -53,7 +50,6 @@ class TherapistModel {
 			}
 			return new TherapistModel(Array.isArray(obj) ? obj[0] : obj[arg.id || arg]);
 		});
-
 	}
 }
 

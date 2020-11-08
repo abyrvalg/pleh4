@@ -1,5 +1,5 @@
 const MONTH_FORWARD_TO_SET = 3;
-const getYearMonth = date=>(+((date.getYear() - 100)+(date.getMonth() < 9 ? "0" : "")+(1+date.getMonth())))
+const getYearMonth = date=>(+((date.getYear() - 100)+(date.getMonth() < 9 ? "0" : "")+(date.getMonth())))
 
 module.exports = {
 	setSchedule : (scope)=>{
@@ -26,7 +26,7 @@ module.exports = {
 					let currentMonth = now.getMonth(),
 						days = []
 						currentMonthSchedule = therapist.getSchedule(getYearMonth(now)) || Therapist.createDefaultSchedule(getYearMonth(now));
-					for(let j = i == 1 ? now.getDate() : 0; j<=31; j++){		
+					for(let j = i == 1 ? now.getDate()-1 : 0; j<=31; j++){		
 						let hours = [];
 						for(let k = 0; k < 24; k++){	
 							let counter = j*24+k;				
@@ -57,7 +57,10 @@ module.exports = {
 				}
 				return scope.session.getVar("liteql").call({
 					"!base_template" : ["setSchedule", {
-						therapist : therapist.obj,
+						therapist : {
+							name : therapist.obj.name,
+							id : therapist.obj.id,
+						},
 						months : months
 					}]
 				});

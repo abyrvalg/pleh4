@@ -10,13 +10,21 @@ window.onload = function(){
     });
 
     document.querySelector("[name=submit_schedule]").addEventListener("click", (e)=>{
-        let checked = document.querySelectorAll(".slot:checked"),
-            query = {};
-        checked.forEach((slot)=>{
-            let month = slot.closest(".month_sheet").dataset.val;
-            query[month] = query[month] || [];
-            query[month].push(slot.value);
+        let monthSheets = document.querySelectorAll(".month_sheet[data-val='"+document.querySelectorAll("#head_month")[0].value+"']"),
+            query = {therapists_setSchedules:{
+                months : {},
+                therapist : location.search.match(/id=([\w\-]+)/)[1]
+            }};
+        monthSheets.forEach(monthSheet=>{
+            let checked = monthSheet.querySelectorAll(".slot:checked"),
+                schedule = 0n;
+            checked.forEach((slot)=>{
+                schedule += BigInt(Math.pow(2, slot.value));
+            });
+            query.therapists_setSchedules.months[monthSheet.dataset.val] = schedule.toString();
         });
-        console.log(query);
+        fetch("/data?query="+JSON.stringify(query)).then(res=>{
+            console.log(res);
+        });
     });
-}
+} 

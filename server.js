@@ -16,7 +16,10 @@ var	onStart = require(APP_ROOT+"/modules/app")('hook').getHooks('onServerStart')
 const CONFIG = require(APP_ROOT+"/modules/app")('config');
 const LOGGER = require(APP_ROOT+"/modules/app")('logger');	
 function start() {	
+	const bodyParser = require('body-parser');
 	app.use(require('cookie-parser')());;
+	app.use(bodyParser.json());
+	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(express.json());
 	app.use(session.check);
 	app.use(express.static(CONFIG.staticFolder));
@@ -48,7 +51,7 @@ function start() {
 			if(!$) {
 				$ = session.setVal(req, 'liteql', new LiteQL());
 			}
-			promise = $.call({'@set' : ['SID', session.getSID(req)]}).then(()=>$.call(JSON.parse(req.query.query)));
+			promise = $.call({'@set' : ['SID', session.getSID(req)]}).then(()=>$.call(query));
 			promise.then((result)=>{
 				resp.send(result)
 			}).catch((e)=>{
