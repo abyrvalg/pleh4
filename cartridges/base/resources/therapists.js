@@ -1,14 +1,10 @@
 const STORAGE = require(APP_ROOT+'/core/storage');
+const Session = require(APP_ROOT+'/core/session')
 module.exports = {
-	index(query){
-		return STORAGE.get({
-            query : "SELECT * from public.therapists"
-        });
-	},
 	setSchedules(query){
 		var months = {},
 			params = [query.therapist],
-			monthsQuery = [],
+			monthsQuery = [],    //TODO: use therapist model for this
 			setVals = [];
 		for(let key in query.months){
 			let monthSchedule = 0n,
@@ -31,6 +27,26 @@ module.exports = {
 			fields : ["therapist", "month"],
 			setVals : setVals,
 			params : params
+		}).then(r=>{
+			return {
+				success : true
+			}
 		})
-	} 
+	},
+	getSchedules(query){
+		return require(APP_ROOT+"/modules/app")("model").get("Therapist").then(Therapist=>{
+			return Therapist.get({
+				id : query.therapist,
+				schedule : {
+					months : "now-"
+				}
+			}, Session.get(this.scope['SID'])).then(therapist=>{
+				return {
+					name : therapist.obj.name,
+					id : therapist.obj.id,
+					months : therapist.obj.schedules			
+				}
+			});
+		});
+	}
 }

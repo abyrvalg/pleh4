@@ -1,4 +1,6 @@
-const { compile } = require("handlebars");
+const MONTH_FORWARD_TO_SET = 3;
+const getYearMonth = date=>(+((date.getYear() - 100)+(date.getMonth() < 9 ? "0" : "")+(date.getMonth())));
+const MONTH_BACKWARD_TO_SET = 3;
 
 class TherapistModel {
 	constructor(obj){
@@ -33,17 +35,39 @@ class TherapistModel {
 	}
 	static get(arg, session){
 		var $ = session.getVar("liteql");
-		if(typeof arg == "object") {
+		if(typeof arg == "object" && arg.schedule) {
+			let months = [];
+			if(~arg.schedule.months.indexOf("-")){
+				var monthFrame = arg.schedule.months.split("-");
+				monthFrame = monthFrame.map(month=>{
+					if(!month){
+						let date = new Date();
+						date.setMonth(date.getMonth() + MONTH_FORWARD_TO_SET);
+						return date;
+					}
+					if(month == "now"){
+						return new Date();
+					}
+				});
+				var date = monthFrame[0];
+				while(date < monthFrame[1]){
+					months.push(getYearMonth(date))
+					date.setMonth(date.getMonth() + 1);
+				}		
+			}
+			else {
+				months = arg.schedule.months;
+			}
 			var dataProm  = $.call({"!storage_schedules":[{
 				"id":arg.id,
-				"months":arg.schedule.months
+				"months":months
 			}]});
 		}
 		else {
 			var dataProm = $.call({
 				"!storage_therapists": [{id : arg}]
 			});
-		}
+		}		
 		return dataProm.then((obj)=>{
 			if(!obj) {
 				return;

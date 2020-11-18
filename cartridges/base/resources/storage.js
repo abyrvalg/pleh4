@@ -21,7 +21,7 @@ module.exports = {
 			}
 			return STORAGE.get({
 				query : "select t.id, t.first_name, t.last_name, s.month, s.schedule from public.therapists as t left \
-				join public.schedules as s on t.id = s.therapist and s.month in ("+months.join(",")+") where t.id = $1",
+				join public.schedules as s on t.id = s.therapist and s.month in ("+months.join(",")+") where t.id = $1 order by s.month",
 				params: queryParams
 			}).then(r=>{
 				var therapists = {};

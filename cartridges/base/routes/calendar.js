@@ -3,17 +3,11 @@ const getYearMonth = date=>(+((date.getYear() - 100)+(date.getMonth() < 9 ? "0" 
 
 module.exports = {
 	setSchedule : (scope)=>{
-		var now = new Date(),
-			monthsToGet = [];
-		for (let i = 0; i < MONTH_FORWARD_TO_SET; i++){			
-			monthsToGet.push(getYearMonth(now));
-			now.setMonth(now.getMonth() + 1);
-		}
 		return require(APP_ROOT+"/modules/app")("model").get("Therapist").then(Therapist=>{
 			return Therapist.get({
 				id : scope.req.query.id,
 				schedule : {
-					months : monthsToGet
+					months : "now-"
 				}
 			}, scope.session).then(therapist=>{
 				var data = {
@@ -24,7 +18,7 @@ module.exports = {
 					monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 				for (let i = 1; i <= MONTH_FORWARD_TO_SET; i++){
 					let currentMonth = now.getMonth(),
-						days = []
+						days = [],
 						currentMonthSchedule = therapist.getSchedule(getYearMonth(now)) || Therapist.createDefaultSchedule(getYearMonth(now));
 					for(let j = i == 1 ? now.getDate()-1 : 0; j<=31; j++){		
 						let hours = [];

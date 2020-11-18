@@ -45,7 +45,7 @@ module.exports = {
 	},
 	upsert(obj){
 		if(mode == "pg"){
-			client.query("select "+obj.fields.join(",")+" from public."+obj.table+" where "+obj.where, obj.params).then(res=>{
+			return client.query("select "+obj.fields.join(",")+" from public."+obj.table+" where "+obj.where, obj.params).then(res=>{
 				let rows = res.rows,
 					insertQueryFields,
 					insertParams = [],
@@ -93,9 +93,7 @@ module.exports = {
 					insertQueryFields.forEach(fields=>{
 						subqueries.push("("+fields.join(",")+")");
 					});
-					return client.query("insert into public."+obj.table+"  ("+obj.fieldsToSet.join(",")+") values "+subqueries, insertParams).then(r=>{
-						return r;
-					});
+					return client.query("insert into public."+obj.table+"  ("+obj.fieldsToSet.join(",")+") values "+subqueries, insertParams);
 				});
 
 			}).catch(err=>{

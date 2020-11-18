@@ -3,6 +3,7 @@ const PATH = require('path');
 global.APP_ROOT = PATH.resolve(__dirname);
 const app = express();
 const LiteQL = require('liteql');
+const cors = require('cors');
 try{
 	require("dotenv").config();
 }
@@ -43,7 +44,7 @@ function start() {
 		return ()=>{LOGGER.debug("resource:"+key+" is not found"); return null;}
 	});
 
-	app.all('/data', function(req, resp){
+	app.all('/data', cors(), function(req, resp){
 		try{
 			var $ = session.getVal(req, 'liteql'),			
 				query = req.query.query ? JSON.parse(req.query.query) : req.body,

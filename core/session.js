@@ -100,6 +100,6 @@ module.exports = {
 		return req && req.cookies && req.cookies['sid'];
 	},
 	get(req){
-		return sessions[this.getSID(req)];
+		return sessions[typeof req == "string" ? req : this.getSID(req)];
 	}
 }
