@@ -10,6 +10,12 @@ module.exports = {
 			return STORAGE.get({query : "select * from public.therapists where id=$1", params : queryParams});
 		}		
 	},
+	appointment(id){
+		return STORAGE.get({
+			query : "select * from public.appointments where id=$1",
+			params : [id]
+		}).then(r=>r[0]);
+	},
 	schedules(params){
 		var queryParams = []; 
 		if(params.id){

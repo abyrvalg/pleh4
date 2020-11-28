@@ -1,10 +1,16 @@
 <link rel="stylesheet" href="https://unpkg.com/js-datepicker/dist/datepicker.min.css">
 <form id="appointment_form" action="http://localhost/data">    
-    <input id="appointment_name" placeholder="Имя"/>
-    <input id="appointment_phone" placeholder="Номер телефона"/>
-    <input id="appointment_date" readonly value="Выберете дату"/>
+    <input id="appointment_name" placeholder="{{name}}"/>
+    <input id="appointment_phone" placeholder="{{phonenumber}}"/>
+    <select id="how_to_call">
+        <option value="0">{{howtocallviber}}</option>
+        <option value="1">{{howtocalltelegram}}</option>
+        <option value="2">{{howtocallwhatsapp}}</option>
+        <option value="3">{{howtocallcall}}</option> 
+    </select>
+    <input id="appointment_date" readonly value="{{choosedate}}"/>
     <select disabled="disabled" id="appiontment_time">
-        <option value="-1">Выберете время</option>
+        <option value="-1">{{choosetime}}</option>
         <option value="0">00-01</option>
         <option value="1">01-02</option>
         <option value="2">02-03</option>
@@ -30,5 +36,5 @@
         <option value="22">22-23</option>
         <option value="23">23-24</option>
     </select>
-    <input type="submit" id="appointment_submit" value="Отправить"/>
+    <input type="submit" id="appointment_submit" value="{{send}}"/>
 </form>

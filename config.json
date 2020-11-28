@@ -8,5 +8,6 @@
 	"host" : "http://localhost",
 	"staticFolder" : "public",
 	"gCalendarClientID" : "233878766692-bogtu1igires1bvdfalps6ap0i21c5ud.apps.googleusercontent.com",
-	"gCalendarsecret" : "IJOlrKtoCSFCI9gS5TbGyglw"
+	"gCalendarsecret" : "IJOlrKtoCSFCI9gS5TbGyglw",
+	"defaultLocale" : "ua"
 }

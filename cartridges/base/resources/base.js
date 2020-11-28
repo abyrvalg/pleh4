@@ -7,7 +7,7 @@ function template(path, data){
 
 module.exports = {
 	msg(category, msg){
-		return require(APP_ROOT+"/modules/app")('configUtil').msg(category, msg);
+		return require(APP_ROOT+"/modules/app")('configUtil').msg(category, msg, this.scope['locale']);
 	},
 	template:template,
     templates(){

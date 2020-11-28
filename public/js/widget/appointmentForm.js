@@ -1,4 +1,3 @@
-
 (()=>{
     const getYearMonth = date=>(+((date.getYear() - 100)+(date.getMonth() < 9 ? "0" : "")+(date.getMonth())));
     const MIN_START_DATE_OFFSET = 2;
@@ -8,7 +7,13 @@
         return now > firstWorkingDate ? now : firstWorkingDate;
     }
     //TODO: take url from server
-    fetch('http://localhost/data?query=[{"base_template>tmpl":["widgets/appointmentForm"]},{"therapists_getSchedules>schedule":[{"therapist":"8a42f102-0e12-11eb-adc1-0242ac120002"}]}]').then(res=>{
+    fetch('http://localhost/'+document.getElementById("appointment_form_container").dataset.locale+'/data?query='+
+        JSON.stringify([
+            {"base_msg>msg":["calendar", ["\^month\\d\*", "\^dayofweakshort\\d"]]},
+            {"?base_msg>form":["form", ["\\w\*"]]},
+            {"base_template>tmpl":["widgets/appointmentForm", "_form"]},
+            {"therapists_getSchedules>schedule":[{"therapist":"8a42f102-0e12-11eb-adc1-0242ac120002"}]}
+        ])).then(res=>{
         res && res.text &&
             res.json().then(json=>{
                 if(!json){
@@ -45,11 +50,11 @@
                 });
                 date.setDate(date.getDate()-1);
                 document.querySelector("#appointment_form_container").innerHTML = json.tmpl;
-
+                console.log([json.msg.month1, json.msg.month2, json.msg.month3, json.msg.month4, json.msg.month5, json.msg.month6, json.msg.month7, json.msg.month8, json.msg.month9, json.msg.month10, json.msg.month11, json.msg.month12]);
                 const picker = datepicker("#appointment_date", {
-                    customDays: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+                    customDays: [json.msg.dayofweakshort1, json.msg.dayofweakshort2, json.msg.dayofweakshort3, json.msg.dayofweakshort4, json.msg.dayofweakshort5, json.msg.dayofweakshort6, json.msg.dayofweakshort7],
                     startDay : 1,
-                    customMonths : ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
+                    customMonths : [json.msg.month1, json.msg.month2, json.msg.month3, json.msg.month4, json.msg.month5, json.msg.month6, json.msg.month7, json.msg.month8, json.msg.month9, json.msg.month10, json.msg.month11, json.msg.month12],
                     minDate : startDate,
                     maxDate : date,
                     disabledDates : daysOff,
@@ -77,7 +82,8 @@
                             name : document.getElementById("appointment_name").value,
                             phone : document.getElementById("appointment_phone").value,
                             date : document.getElementById("appointment_date").value,
-                            time : document.getElementById("appointment_time").value
+                            time : document.getElementById("appiontment_time").value,
+                            howToCall : document.getElementById("how_to_call").value
                         };
                     fetch(document.getElementById("appointment_form").getAttribute("action"), {
                         method: 'POST',
@@ -85,10 +91,13 @@
                             'Content-Type': 'application/json;charset=utf-8'
                         },
                         body: JSON.stringify({
-                            appointment_submit : [params]
+                            "!appointment_submit" : [params]
                         })
                     }).then(resp=>{
-                        
+                        if(resp && resp.success){
+                            alert("заявка отправлена");
+                        }
+
                     }).catch(err=>{
                         console.log(err);
                     })

@@ -34,6 +34,7 @@ module.exports = {
 				});
 			}
 			else if(mode == "pg"){
+				LOGGER.debug("DB query: "+obj.query.replace(/\$(\d+)/g, (m, v)=>obj.params[+v-1]));
 				return client.query(obj.query, obj.params).then(res=>{		
 					return res.rows;			
 				}).catch(err=>{

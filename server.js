@@ -44,15 +44,19 @@ function start() {
 		return ()=>{LOGGER.debug("resource:"+key+" is not found"); return null;}
 	});
 
-	app.all('/data', cors(), function(req, resp){
+	app.all(/\w*\/data/, cors(), function(req, resp){
 		try{
 			var $ = session.getVal(req, 'liteql'),			
 				query = req.query.query ? JSON.parse(req.query.query) : req.body,
-				promise;
+				promise,
+				locale = req.url.match(/^\/(\w{2})\//);
+			locale = locale && locale[1];
+			locale = locale || CONFIG.defaultLocale;
 			if(!$) {
 				$ = session.setVal(req, 'liteql', new LiteQL());
 			}
 			promise = $.call({'@set' : ['SID', session.getSID(req)]}).then(()=>$.call(query));
+			locale && (promise = $.call({'@set' : ['locale', locale]}).then(()=>$.call(query)));
 			promise.then((result)=>{
 				resp.send(result)
 			}).catch((e)=>{
