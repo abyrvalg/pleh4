@@ -7,7 +7,7 @@
         return now > firstWorkingDate ? now : firstWorkingDate;
     }
     //TODO: take url from server
-    fetch('http://localhost/'+document.getElementById("appointment_form_container").dataset.locale+'/data?query='+
+    fetch('http://pleh4.herokuapp.com/'+document.getElementById("appointment_form_container").dataset.locale+'/data?query='+
         JSON.stringify([
             {"base_msg>msg":["calendar", ["\^month\\d\*", "\^dayofweakshort\\d"]]},
             {"?base_msg>form":["form", ["\\w\*"]]},
