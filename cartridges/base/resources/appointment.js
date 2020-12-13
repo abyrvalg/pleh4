@@ -51,8 +51,8 @@ module.exports = {
                 } 
             }
             return STORAGE.get({
-                query : "insert into public.appointments (id, name, phone, therapist, date, time, status, how_to_call)\
-                    values ($1, $2, $3, $4, $5, $6, $7, $8)",
+                query : "insert into public.appointments (id, name, phone, therapist, date, time, status, how_to_call, create_date)\
+                    values ($1, $2, $3, $4, $5, $6, $7, $8, now())",
                 params : [getUID(32), query.name, query.phone, query.therapist, date, +query.time, 0, +query.howToCall]
             }).then(res=>{
                 if(!res){

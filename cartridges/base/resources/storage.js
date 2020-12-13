@@ -1,4 +1,5 @@
 const STORAGE = require(APP_ROOT+"/modules/app")('storage');
+const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
 module.exports = {
 	index(query){
 		return STORAGE.get(query);
@@ -20,30 +21,65 @@ module.exports = {
 		var queryParams = []; 
 		if(params.id){
 			queryParams.push(params.id);
-			var months = [];
+			var months = [],
+				dateMonthQuery = [];
 			for (let i in params.months){				
-				queryParams.push(params.months[i]);	
-				months.push("$"+queryParams.length);			
+				queryParams.push(params.months[i]);
+				months.push("$"+queryParams.length);
+				if(params.getAppointments) {
+					queryParams.push(dateUtils.getDateFromYearMonth(params.months[i]));
+					let from = "$"+queryParams.length;
+					queryParams.push(dateUtils.getDateFromYearMonth(params.months[i], true));
+					let to = "$"+queryParams.length;
+					dateMonthQuery.push("(a.date > "+from +" and "+"a.date < "+to+")");
+				}
 			}
-			return STORAGE.get({
-				query : "select t.id, t.first_name, t.last_name, s.month, s.schedule from public.therapists as t left \
-				join public.schedules as s on t.id = s.therapist and s.month in ("+months.join(",")+") where t.id = $1 order by s.month",
+			if(params.getAppointments) {
+				var appointmentsQuery = {
+					fields : "a.id as appointment_id, a.date as appointment_date, a.time as appointment_time",
+					join : "left join public.appointments as a on a.therapist = t.id and (a.status > 0 or (a.status = 0 and a.create_date < now() + interval '6 hours')) and "+dateMonthQuery.join(" or ")
+				} //TODO configure interval value
+			}
+			let sqlQuery = {
+				query : "select "+(appointmentsQuery ? appointmentsQuery.fields+", " : "")+" t.id, t.first_name, t.last_name, s.month, s.schedule from public.therapists as t\
+				left join public.schedules as s on t.id = s.therapist and s.month in ("+months.join(",")+")\
+				"+(appointmentsQuery ? appointmentsQuery.join : "")+"\
+				where t.id = $1 order by s.month",
 				params: queryParams
-			}).then(r=>{
-				var therapists = {};
+			};
+			return STORAGE.get(sqlQuery).then(r=>{
+				let therapists = {},
+					processed = {
+						schedules : [],
+						appointments : []
+					};
 				for (let i in r) {
 					therapists[r[i].id] = therapists[r[i].id]  || {
 						id : r[i].id,
 						first_name : r[i].first_name,
 						last_name : r[i].last_name,
-						schedules : []
+						schedules : [],
+						appointments : []
 					};
-					r[i].schedule && therapists[r[i].id].schedules.push({
-						month : r[i].month,
-						schedule : r[i].schedule
-					});
+					if(r[i].schedule && !~processed.schedules.indexOf(r[i].month)) {
+						therapists[r[i].id].schedules.push({
+							month : r[i].month,
+							schedule : r[i].schedule
+						});
+						processed.schedules.push(r[i].month);
+					}
+					if(r[i].appointment_id && !~processed.appointments.indexOf(r[i].appointment_id)) {
+						therapists[r[i].id].appointments.push({
+							date : r[i].appointment_date,
+							time : r[i].appointment_time
+						});
+						processed.appointments.push(r[i].appointment_id);
+					}
+
 				}
 				return therapists;
+			}).catch(err=>{
+				console.log(err);
 			})
 		}
 	}

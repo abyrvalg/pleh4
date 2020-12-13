@@ -7,12 +7,12 @@
         return now > firstWorkingDate ? now : firstWorkingDate;
     }
     //TODO: take url from server
-    fetch('http://pleh4.herokuapp.com/'+document.getElementById("appointment_form_container").dataset.locale+'/data?query='+
+    fetch(document.getElementById("appointment_form_container").dataset.domain+'/'+document.getElementById("appointment_form_container").dataset.locale+'/data?query='+
         JSON.stringify([
             {"base_msg>msg":["calendar", ["\^month\\d\*", "\^dayofweakshort\\d"]]},
             {"?base_msg>form":["form", ["\\w\*"]]},
             {"base_template>tmpl":["widgets/appointmentForm", "_form"]},
-            {"therapists_getSchedules>schedule":[{"therapist":"8a42f102-0e12-11eb-adc1-0242ac120002"}]}
+            {"therapists_getSchedules>schedule":[{"therapist":"8a42f102-0e12-11eb-adc1-0242ac120002", "substractAppointments" : true}]}
         ])).then(res=>{
         res && res.text &&
             res.json().then(json=>{
@@ -50,7 +50,6 @@
                 });
                 date.setDate(date.getDate()-1);
                 document.querySelector("#appointment_form_container").innerHTML = json.tmpl;
-                console.log([json.msg.month1, json.msg.month2, json.msg.month3, json.msg.month4, json.msg.month5, json.msg.month6, json.msg.month7, json.msg.month8, json.msg.month9, json.msg.month10, json.msg.month11, json.msg.month12]);
                 const picker = datepicker("#appointment_date", {
                     customDays: [json.msg.dayofweakshort1, json.msg.dayofweakshort2, json.msg.dayofweakshort3, json.msg.dayofweakshort4, json.msg.dayofweakshort5, json.msg.dayofweakshort6, json.msg.dayofweakshort7],
                     startDay : 1,

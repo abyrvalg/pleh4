@@ -17,13 +17,15 @@ module.exports = (path, params)=>{
 		}
 		return params ? modelFactory.get(params) : modelFactory;
 	}
+	if(path == "utils"){
+		return require("./../../cartridges/base/utils/"+params+"Utils");
+	}
 	return require('./../../'+({
 		'session' : 'core/session',
 		'logger' : 'core/logger',
 		'hook' : 'core/hook',
 		'template' : 'core/template',
 		'storage' : 'core/storage',		
-		'configUtil' : 'core/utils/configUtil',
-		'utils' : 'core/utils',
+		'configUtil' : 'core/utils/configUtil'
 	}[path] || path));
 }

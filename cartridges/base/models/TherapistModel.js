@@ -1,11 +1,22 @@
 const MONTH_FORWARD_TO_SET = 3;
-const getYearMonth = date=>(+((date.getYear() - 100)+(date.getMonth() < 9 ? "0" : "")+(date.getMonth())));
+const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
 const MONTH_BACKWARD_TO_SET = 3;
 
 class TherapistModel {
 	constructor(obj){
 		this.obj = obj;
 		this.obj.name = obj.first_name+ " "+obj.last_name;
+		if(this.obj.appointments && this.obj.appointments.length) {
+			this.obj.appointments.forEach(appointment=>{
+				let yearMonth = dateUtils.getYearMonth(appointment.date);				
+				this.obj.schedules = this.obj.schedules.map(schedule=>{
+					if(schedule.month == yearMonth) {	
+						schedule.schedule = dateUtils.substractDateTimeFromSchedule(BigInt(schedule.schedule), appointment.date, appointment.time).toString();
+					}
+					return schedule;					;
+				});				
+			});
+		}
 	}
 	getSchedule(month){
 		if(!month || !this.obj.schedules) {
@@ -51,16 +62,17 @@ class TherapistModel {
 				});
 				var date = monthFrame[0];
 				while(date < monthFrame[1]){
-					months.push(getYearMonth(date))
+					months.push(dateUtils.getYearMonth(date))
 					date.setMonth(date.getMonth() + 1);
 				}		
 			}
 			else {
 				months = arg.schedule.months;
-			}
+			}			
 			var dataProm  = $.call({"!storage_schedules":[{
 				"id":arg.id,
-				"months":months
+				"months":months,
+				"getAppointments" : arg.schedule.substractAppointments
 			}]});
 		}
 		else {

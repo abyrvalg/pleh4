@@ -38,7 +38,8 @@ module.exports = {
 			return Therapist.get({
 				id : query.therapist,
 				schedule : {
-					months : "now-"
+					months : "now-",
+					substractAppointments : !!query.substractAppointments
 				}
 			}, Session.get(this.scope['SID'])).then(therapist=>{
 				return {

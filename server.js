@@ -31,12 +31,14 @@ function start() {
 	
 	LiteQL.setResourceMethod((key)=>{
 		var match = key.match(/((?:[^_])+)??(?:\_(\w+))?$/);
-		for(let i = 0; i < CONFIG.cartridgePath.length; i++){
+		for(let i = 0; i < CONFIG.cartridgePath.length; i++){			
 			let func;
-			try{				
+			try{
 				func = require('./cartridges/'+CONFIG.cartridgePath[i]+'/resources/'+(match && match[1].replace(/\./g, '/') || '/index'))[match && match[2] || 'index'];
 			}
-			catch(e){}
+			catch(e){
+				LOGGER.debug(e);
+			}
 			if(func) {
 				return func
 			}
@@ -55,8 +57,10 @@ function start() {
 			if(!$) {
 				$ = session.setVal(req, 'liteql', new LiteQL());
 			}
-			promise = $.call({'@set' : ['SID', session.getSID(req)]}).then(()=>$.call(query));
-			locale && (promise = $.call({'@set' : ['locale', locale]}).then(()=>$.call(query)));
+			if(locale) {
+				promise = $.call({'@set' : ['locale', locale]});
+			}
+			promise = $.call({'@set' : ['SID', session.getSID(req)]}).then(()=>$.call(query));			
 			promise.then((result)=>{
 				resp.send(result)
 			}).catch((e)=>{
