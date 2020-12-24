@@ -16,3 +16,23 @@
  .row{
     margin:3px;
 }
+.table_cell {
+    width: 100px;
+    display: inline-block;
+}
+.table_head{
+    background-color: #cbcbcb;
+    width: 630px;
+    border-right: #cbcbcb solid;
+}
+.status{
+    margin: 5px;
+    display: inline-block;
+}
+.appointment{
+    border-bottom: #cbcbcb solid;
+}
+.appointment_list{
+    width: 630px;
+    border-right: #cbcbcb solid;
+}

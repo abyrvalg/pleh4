@@ -1,0 +1,41 @@
+<head>
+	<script src="/js/appointment.js"></script>
+	<link rel="stylesheet" href="/css/style.css">
+</head>
+<div>
+    <div class="table_head">
+        <div class="table_cell">Name</div>
+        <div class="table_cell">Phone</div>
+        <div class="table_cell">Contact</div>
+        <div class="table_cell">Date</div>
+        <div class="table_cell">Time</div>
+        <div class="table_cell">Stauts</div>
+    </div>
+     <div class="appointment_list">
+        {{#each this}}
+            <div class="appointment">
+                <div class="table_cell">{{name}}</div>|
+                <div class="table_cell">{{phone}}</div>
+                <div class="table_cell">{{how_to_call}}</div>|
+                <div class="table_cell">{{date}}</div>|
+                <div class="table_cell">{{time}}</div>
+                <div class="table_cell change_status" data-id="{{id}}">
+                    {{#if confirmed}}
+                  <div class="status">V</div>
+                    {{else}}
+                       <div class="status"> 
+                           <input class="button_confirm" data-id="{{id}}" type="submit" data-status="1" value="V"/>
+                        </div>
+                    {{/if}}
+                    {{#if canceled}}
+                        <div class="status">X</div>
+                    {{else}}
+                    <div class="status">
+                        <input class="button_cancel" data-id="{{id}}" type="submit" data-status="-1" value="X"/>
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+        {{/each}}
+    </div>
+</div>

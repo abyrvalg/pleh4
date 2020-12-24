@@ -1,9 +1,9 @@
 
 class AppiontmentModel {
-	constructor(obj){
+	constructor(obj) {
 		this.obj = obj;
 	}
-	static get(arg, session){
+	static get(arg, session) {
 		var $ = session.getVar("liteql");
 		if(typeof arg == "object" && arg) {
 

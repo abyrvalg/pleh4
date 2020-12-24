@@ -35,7 +35,12 @@ module.exports = {
 			}
 			else if(mode == "pg"){
 				LOGGER.debug("DB query: "+obj.query.replace(/\$(\d+)/g, (m, v)=>obj.params[+v-1]));
-				return client.query(obj.query, obj.params).then(res=>{		
+				return client.query(obj.query, obj.params).then(res=>{
+					if(res.command == "UPDATE"){
+						return {
+							updatedRows : res.rowCount
+						}
+					}
 					return res.rows;			
 				}).catch(err=>{
 					LOGGER.error(err);

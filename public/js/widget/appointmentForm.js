@@ -93,10 +93,16 @@
                             "!appointment_submit" : [params]
                         })
                     }).then(resp=>{
-                        if(resp && resp.success){
-                            alert("заявка отправлена");
-                        }
-
+                        resp.json && resp.json().then(json=>{
+                            if(json.success){
+                                document.getElementById("appointment_name").value = "",
+                                document.getElementById("appointment_phone").value = "",
+                                document.getElementById("appointment_date").value = "",
+                                document.getElementById("appiontment_time").value = "",
+                                document.getElementById("how_to_call").value = ""
+                                alert("Заявка отправлена");
+                            }
+                        })                        
                     }).catch(err=>{
                         console.log(err);
                     })

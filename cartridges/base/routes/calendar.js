@@ -1,5 +1,5 @@
 const MONTH_FORWARD_TO_SET = 3;
-const getYearMonth = date=>(+((date.getYear() - 100)+(date.getMonth() < 9 ? "0" : "")+(date.getMonth())))
+const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
 
 module.exports = {
 	setSchedule : (scope)=>{
@@ -19,7 +19,7 @@ module.exports = {
 				for (let i = 1; i <= MONTH_FORWARD_TO_SET; i++){
 					let currentMonth = now.getMonth(),
 						days = [],
-						currentMonthSchedule = therapist.getSchedule(getYearMonth(now)) || Therapist.createDefaultSchedule(getYearMonth(now));
+						currentMonthSchedule = therapist.getSchedule(dateUtils.getYearMonth(now)) || Therapist.createDefaultSchedule(dateUtils.getYearMonth(now));
 					for(let j = i == 1 ? now.getDate()-1 : 0; j<=31; j++){		
 						let hours = [];
 						for(let k = 0; k < 24; k++){	

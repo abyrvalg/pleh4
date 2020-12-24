@@ -14,6 +14,12 @@ const dateUtils = {
     },
     substractDateTimeFromSchedule : (schedule, date, time) => {
         return schedule - BigInt(Math.pow(2, dateUtils.getNumFromDateTime(date, time)));
-    }
+    },
+    isSlotAvailable : (schedule, date, time)=>{
+        var slotNum =  time ? (date.getDate()-1)*24+time : date;
+        return !!(schedule/BigInt(Math.pow(2, slotNum)) % 2n);
+    },
+    dateToString : date=>date.getDate() + "."+(date.getMonth()+1)+"."+date.getFullYear(),
+    timeToString : time=>time+":00 - "+(time+1)+":00"
 }
 module.exports = dateUtils;

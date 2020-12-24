@@ -1,21 +1,42 @@
 const STORAGE = require(APP_ROOT+"/modules/app")('storage');
 const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
+function getTherapist(params){
+	var queryParams = []; 
+	if(params.id){
+		queryParams.push(params.id);
+		return STORAGE.get({query : "select * from public.therapists where id=$1", params : queryParams});
+	}	
+}
 module.exports = {
 	index(query){
 		return STORAGE.get(query);
 	},
-	therapists(params){
-		var queryParams = []; 
-		if(params.id){
-			queryParams.push(params.id);
-			return STORAGE.get({query : "select * from public.therapists where id=$1", params : queryParams});
-		}		
+	therapists : getTherapist,
+	therapist(id) {
+		return getTherapist({id:id}).then(r=>r[0]);
 	},
 	appointment(id){
 		return STORAGE.get({
 			query : "select * from public.appointments where id=$1",
 			params : [id]
 		}).then(r=>r[0]);
+	},
+	appointments(therapistID){
+		return STORAGE.get({
+			query : "select * from public.appointments where therapist=$1 and date > now() order by date, time",
+			params : [therapistID]
+		}).then(res=>res.map(ap=>{
+			return {
+				"id" : ap.id,
+				"date" : dateUtils.dateToString(ap.date),
+				"time" : dateUtils.timeToString(ap.time),
+				"confirmed" : ap.status > 0,
+				"canceled" : ap.status < 0, 
+				"name" : ap.name,
+				"phone" : ap.phone,
+				"how_to_call" : ["viber", "telegram", "whatsUp", "Звонок"][ap.how_to_call]
+			}
+		}));
 	},
 	schedules(params){
 		var queryParams = []; 
@@ -37,7 +58,7 @@ module.exports = {
 			if(params.getAppointments) {
 				var appointmentsQuery = {
 					fields : "a.id as appointment_id, a.date as appointment_date, a.time as appointment_time",
-					join : "left join public.appointments as a on a.therapist = t.id and (a.status > 0 or (a.status = 0 and a.create_date < now() + interval '6 hours')) and "+dateMonthQuery.join(" or ")
+					join : "left join public.appointments as a on a.therapist = t.id and (a.status > 0 or (a.status = 0 and a.create_date < now() + interval '6 hours')) and ("+dateMonthQuery.join(" or ")+")"
 				} //TODO configure interval value
 			}
 			let sqlQuery = {

@@ -10,6 +10,7 @@ try{
 catch(e){
 	
 }
+global.ROOT_URL = process.env.ROOT_URL;
 var	onStart = require(APP_ROOT+"/modules/app")('hook').getHooks('onServerStart'),
 	onRequest = require(APP_ROOT+"/modules/app")('hook').getHooks('onRequest'),
   session = require(APP_ROOT+"/modules/app")('session');
