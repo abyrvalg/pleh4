@@ -70,6 +70,7 @@ module.exports = {
                         "phone" : query.phone,
                         "date" : dateUtils.dateToString(date),
                         "time" : dateUtils.timeToString(+query.time),
+                        "howToCall" : ["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall],
                         "appoinmentListLink" : urlUtils.getFullUrl("appointment/list?therapist="+query.therapist)
                     }]}
                 ]).then(mailData=>{

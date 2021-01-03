@@ -36,3 +36,36 @@
     width: 630px;
     border-right: #cbcbcb solid;
 }
+.input_wrap{
+    display: inline-block;
+    vertical-align: top;
+}
+
+.form_field{
+    border: 1px solid #000000;
+    height: 60px;
+    margin: 0;
+    font-family: 'Circe',Arial,sans-serif;
+    font-size: 100%;
+}
+.form_submit{
+    font-family: 'Circe',Arial,sans-serif;
+    text-align: center;
+    height: 60px;
+    border: 0 none;
+    font-size: 16px;
+    padding-left: 60px;
+    padding-right: 60px;
+    -webkit-appearance: none;
+    font-weight: 700;
+    white-space: nowrap;
+    background-image: none;
+    cursor: pointer;
+    margin: 0;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    outline: none;
+    color: #ffffff;
+    background-color: #000000;
+}

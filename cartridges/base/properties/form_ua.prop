@@ -6,4 +6,7 @@ howtocallwhatsapp=WatsApp
 howtocallcall=Дзвінок(тільки для України)
 choosedate=Виберіть дату
 choosetime=Виберіть час
-send=Відправити
+misseingerror=Це обов'язкове поле
+invaliderror=Невірне значення
+
+send=Надіслати

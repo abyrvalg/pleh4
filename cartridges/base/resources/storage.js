@@ -52,7 +52,7 @@ module.exports = {
 					let from = "$"+queryParams.length;
 					queryParams.push(dateUtils.getDateFromYearMonth(params.months[i], true));
 					let to = "$"+queryParams.length;
-					dateMonthQuery.push("(a.date > "+from +" and "+"a.date < "+to+")");
+					dateMonthQuery.push("(a.date >= "+from +" and "+"a.date <= "+to+")");
 				}
 			}
 			if(params.getAppointments) {

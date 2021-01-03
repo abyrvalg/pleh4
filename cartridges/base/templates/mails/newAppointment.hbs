@@ -1,11 +1,19 @@
 <div>
     <p>Поступил новый заказ!</p>
-    <table>
-        <tr>
-            <td>Имя</td><td>Телефон</td> <td>Дата</td> <td>Время</td>
+    <table style="border: 1px solid black;">
+        <tr style="border: 1px solid black;">
+            <td style="width:100px; border: 1px solid black;">Имя</td>
+            <td style="width:100px; border: 1px solid black;">Телефон</td>
+            <td style="width:100px; border: 1px solid black;">Как связаться</td> 
+            <td style="width:100px; border: 1px solid black;">Дата</td> 
+            <td style="width:100px; border: 1px solid black;">Время</td>
         </tr>
-        <tr>
-            <td>{{name}}</td><td>{{phone}}</td><td>{{date}}</td><td>{{time}}</td>
+        <tr style="border: 1px solid black;">
+            <td style="width:100px; border: 1px solid black;">{{name}}</td>
+            <td style="width:100px; border: 1px solid black;">{{phone}}</td>
+            <td style="width:100px; border: 1px solid black;">{{howToCall}}</td>
+            <td style="width:100px; border: 1px solid black;">{{date}}</td>
+            <td style="width:100px; border: 1px solid black;">{{time}}</td>
         </tr>        
     </table>
     <p><a href="{{appoinmentListLink}}">Список заказов</a></p>
