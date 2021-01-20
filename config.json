@@ -3,7 +3,7 @@
 	"sessionStorage":"memory",
 	"noDB":true,
 	"cartridgePath":["base"],
-	"logTarget" : "file",
+	"logTarget" : "console",
 	"logLevels" : ["error", "warn", "debug", "fatal"],
 	"host" : "http://localhost",
 	"staticFolder" : "public",
