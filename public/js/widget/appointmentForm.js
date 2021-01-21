@@ -100,7 +100,7 @@
                             therapist : document.getElementById("appointment_form_container").dataset.therapist,
                             name : document.getElementById("appointment_name").value,
                             phone : document.getElementById("appointment_phone").value,
-                            date : picker.dateSelected,
+                            date : picker.dateSelected.toString(),
                             time : document.getElementById("appiontment_time").value,
                             howToCall : document.getElementById("how_to_call").value
                         };
