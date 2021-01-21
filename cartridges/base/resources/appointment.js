@@ -32,7 +32,7 @@ module.exports = {
         }
         return STORAGE.get({
             query : "select s.schedule, ap.id as appointment_id from public.schedules as s \
-                left join public.appointments as ap on ap.therapist=$1 and ap.date = $3 and ap.time = $4\
+                left join public.appointments as ap on ap.therapist=$1 and ap.date = $3 and ap.time = $4 and (ap.status > 0 or (ap.status = 0 and ap.create_date < now() + interval '6 hours'))\
                 where s.therapist=$1 and s.month=$2", 
             params : [query.therapist, dateUtils.getYearMonth(date), date, query.time]
         }).then(res=>{
