@@ -22,6 +22,8 @@ module.exports = {
     },
 	submit(query){
         var date = new Date(query.date);
+        LOGGER.debug("submit appointment. Date:");
+        LOGGER.debug(date);
         if (isNaN(date.getTime())){
             return {
                 success: false,
