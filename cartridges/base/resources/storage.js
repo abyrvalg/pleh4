@@ -57,7 +57,7 @@ module.exports = {
 			}
 			if(params.getAppointments) {
 				var appointmentsQuery = {
-					fields : "a.id as appointment_id, a.date as appointment_date, a.time as appointment_time",
+					fields : "a.id as appointment_id, a.date as appointment_date, a.time as appointment_time, a.name as client_name, a.phone as client_phone",
 					join : "left join public.appointments as a on a.therapist = t.id and (a.status > 0 or (a.status = 0 and a.create_date < now() + interval '6 hours')) and ("+dateMonthQuery.join(" or ")+")"
 				} //TODO configure interval value
 			}
@@ -90,10 +90,16 @@ module.exports = {
 						processed.schedules.push(r[i].month);
 					}
 					if(r[i].appointment_id && !~processed.appointments.indexOf(r[i].appointment_id)) {
+						let appointmentNum = dateUtils.getNumFromDateTime(r[i].appointment_date, r[i].appointment_time);
 						therapists[r[i].id].appointments.push({
 							date : r[i].appointment_date,
-							time : r[i].appointment_time
+							time : r[i].appointment_time,
+							name : r[i].client_name,
+							phone : r[i].client_phone,
+							num : appointmentNum
 						});
+						therapists[r[i].id].appointmentNums = therapists[r[i].id].appointmentNums || [];
+						therapists[r[i].id].appointmentNums.push(appointmentNum);
 						processed.appointments.push(r[i].appointment_id);
 					}
 

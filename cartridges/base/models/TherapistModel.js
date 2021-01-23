@@ -5,18 +5,27 @@ const MONTH_BACKWARD_TO_SET = 3;
 class TherapistModel {
 	constructor(obj){
 		this.obj = obj;
-		this.obj.name = obj.first_name+ " "+obj.last_name;
+		this.obj.name = obj.first_name+ " "+obj.last_name;		
+	}
+	substractAppointmentsFromSchedule(){
 		if(this.obj.appointments && this.obj.appointments.length) {
-			this.obj.appointments.forEach(appointment=>{
-				let yearMonth = dateUtils.getYearMonth(appointment.date);				
-				this.obj.schedules = this.obj.schedules.map(schedule=>{
+			var that = this;
+			that.obj.appointments.forEach(appointment=>{
+				let yearMonth = dateUtils.getYearMonth(appointment.date);		
+				that.obj.schedules = that.obj.schedules.map(schedule=>{
 					if(schedule.month == yearMonth) {	
 						schedule.schedule = dateUtils.substractDateTimeFromSchedule(BigInt(schedule.schedule), appointment.date, appointment.time).toString();
 					}
 					return schedule;					;
-				});				
+				});					
 			});
 		}
+	}
+	getAppointmentByNum(num){		
+		if(!this.obj.appointments || !this.obj.appointmentNums || !~this.obj.appointmentNums.indexOf(num)) return null;
+		for(let i in this.obj.appointments)
+			if(this.obj.appointments[i].num == num) 
+				return this.obj.appointments[i];		
 	}
 	getSchedule(month){
 		if(!month || !this.obj.schedules) {
@@ -72,7 +81,7 @@ class TherapistModel {
 			var dataProm  = $.call({"!storage_schedules":[{
 				"id":arg.id,
 				"months":months,
-				"getAppointments" : arg.schedule.substractAppointments
+				"getAppointments" : arg.getAppointments
 			}]});
 		}
 		else {
@@ -84,6 +93,7 @@ class TherapistModel {
 			if(!obj) {
 				return;
 			}
+			(obj.schedules)
 			return new TherapistModel(Array.isArray(obj) ? obj[0] : obj[arg.id || arg]);
 		});
 	}

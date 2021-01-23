@@ -38,10 +38,13 @@ module.exports = {
 			return Therapist.get({
 				id : query.therapist,
 				schedule : {
-					months : "now-",
-					substractAppointments : !!query.substractAppointments
-				}
+					months : "now-"
+				},
+				getAppointments : !!query.substractAppointments
 			}, Session.get(this.scope['SID'])).then(therapist=>{
+				if(query.substractAppointments){
+					therapist.substractAppointmentsFromSchedule();
+				}
 				return {
 					name : therapist.obj.name,
 					id : therapist.obj.id,
@@ -49,5 +52,10 @@ module.exports = {
 				}
 			});
 		});
+	},
+	list(query){
+		if(!query) {
+			return require(APP_ROOT+"/modules/app")("model").get("Therapist").list()
+		}
 	}
 }
