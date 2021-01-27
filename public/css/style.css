@@ -1,5 +1,5 @@
 .hidden{
-    display: none;
+    display: none !important;
 }
 .day_of_week_0{
    color:red; 
@@ -22,7 +22,7 @@
 }
 .table_head{
     background-color: #cbcbcb;
-    width: 630px;
+    width: 740px;
     border-right: #cbcbcb solid;
 }
 .status{
@@ -33,7 +33,7 @@
     border-bottom: #cbcbcb solid;
 }
 .appointment_list{
-    width: 630px;
+    width: 740px;
     border-right: #cbcbcb solid;
 }
 .input_wrap{
@@ -68,4 +68,19 @@
     outline: none;
     color: #ffffff;
     background-color: #000000;
+}
+.gray{
+    background-color: #bbbbbb;
+}
+.appointment_form {
+    display: inline-block;
+    width: 340px;
+}
+.appointment_table {
+    vertical-align: top;
+    display: inline-block;
+    width: 750px;
+}
+.input_wrap_vertical{
+    margin : 5px;
 }

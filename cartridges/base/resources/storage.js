@@ -34,7 +34,9 @@ module.exports = {
 				"canceled" : ap.status < 0, 
 				"name" : ap.name,
 				"phone" : ap.phone,
-				"how_to_call" : ["viber", "telegram", "whatsUp", "Звонок"][ap.how_to_call]
+				"how_to_call" : ["viber", "telegram", "whatsUp", "Звонок"][ap.how_to_call],
+				"how_to_call_num" : ap.how_to_call,
+				"time_num" : ap.time
 			}
 		}));
 	},

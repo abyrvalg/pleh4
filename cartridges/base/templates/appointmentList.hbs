@@ -1,8 +1,10 @@
 <head>
 	<script src="/js/appointment.js"></script>
 	<link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/js-datepicker/dist/datepicker.min.css">
+    <script src="https://unpkg.com/js-datepicker"></script>
 </head>
-<div>
+<div class="appointment_table">
     <div class="table_head">
         <div class="table_cell">Name</div>
         <div class="table_cell">Phone</div>
@@ -10,15 +12,16 @@
         <div class="table_cell">Date</div>
         <div class="table_cell">Time</div>
         <div class="table_cell">Stauts</div>
+        <div class="table_cell">Move</div>
     </div>
      <div class="appointment_list">
         {{#each this}}
             <div class="appointment">
-                <div class="table_cell">{{name}}</div>|
-                <div class="table_cell">{{phone}}</div>
-                <div class="table_cell">{{how_to_call}}</div>|
-                <div class="table_cell">{{date}}</div>|
-                <div class="table_cell">{{time}}</div>
+                <div class="table_cell name">{{name}}</div>|
+                <div class="table_cell phone">{{phone}}</div>
+                <div class="table_cell how_to_call" data-num="{{how_to_call_num}}">{{how_to_call}}</div>|
+                <div class="table_cell date">{{date}}</div>|
+                <div class="table_cell time" data-num="{{time_num}}">{{time}}</div>
                 <div class="table_cell change_status" data-id="{{id}}">
                     {{#if confirmed}}
                   <div class="status">V</div>
@@ -34,8 +37,55 @@
                         <input class="button_cancel" data-id="{{id}}" type="submit" data-status="-1" value="X"/>
                     </div>
                     {{/if}}
-                </div>
+                </div> 
+                <div class="table_cell"><input class="move_appointment" data-id="{{id}}" type="submit" value="Перенести"/></div>
             </div>
         {{/each}}
-    </div>
+    </div> 
+    <input type="button" class="new_appointment" value="Новый"/>  
 </div>
+<div class="appointment_form hidden">
+        <div class="input_wrap_vertical"><input id="client_name" placeholder="Имя"/></div>
+        <div class="input_wrap_vertical"><input id="client_phone" maxlength="12" placeholder="Телефон"/></div>
+        <div class="input_wrap_vertical">
+            <select id="how_to_call" required>
+                <option value="0">Viber</option>
+                <option value="1">Telegram</option>
+                <option value="2">WhatsUp</option>
+                <option value="3">Звонок</option> 
+            </select>
+            <div class="input_error"></div>
+        </div>
+        <div class="input_wrap_vertical"><input id="calendar_inp" placeholder="Дата"/></div>
+        <div class="input_wrap_vertical">
+            <select required id="appiontment_time" plac>
+                <option value="">Время</option>
+                <option value="0">00-01</option>
+                <option value="1">01-02</option>
+                <option value="2">02-03</option>
+                <option value="3">03-04</option>
+                <option value="4">04-05</option>
+                <option value="5">05-06</option>
+                <option value="6">06-07</option>
+                <option value="7">07-08</option>
+                <option value="8">08-09</option>
+                <option value="9">09-10</option>
+                <option value="10">10-11</option>
+                <option value="11">11-12</option>
+                <option value="12">12-13</option>
+                <option value="13">13-14</option>
+                <option value="14">14-15</option>
+                <option value="15">15-16</option>
+                <option value="16">16-17</option>
+                <option value="17">17-18</option>
+                <option value="18">18-19</option>
+                <option value="19">19-20</option>  
+                <option value="20">20-21</option>
+                <option value="21">21-22</option>
+                <option value="22">22-23</option>
+                <option value="23">23-24</option>
+            </select>
+            <div class="input_error"></div>
+        </div>
+        <div class="input_wrap_vertical"><input type="submit" class="submit_appointment" value="Подтвердить"/></div>
+    </div>

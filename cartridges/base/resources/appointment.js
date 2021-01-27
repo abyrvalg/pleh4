@@ -13,9 +13,18 @@ function getUID(length) {
 }
 module.exports = {
     update(query){
+        var setFields = [],
+            params = [query.id];
+        ["status", "name", "phone", "time", "date"].forEach(e=>{
+            if(query[e]){
+                params.push(e == "date" ? new Date(query[e]) : query[e]);
+                setFields.push(e+" = $"+params.length)
+            }
+        });  
+        if(!setFields.length) return;
         return STORAGE.get({
-            query : "update public.appointments set status = $2 where id = $1",
-            params : [query.id, query.status]
+            query : "update public.appointments set "+setFields.join(",")+" where id = $1",
+            params : params
         }).then(r=>{
             return {status : r.updatedRows ? "ok" : "error"}
         });
@@ -50,10 +59,15 @@ module.exports = {
                 }
             }
             if(!dateUtils.isSlotAvailable(BigInt(res.schedule), date, +query.time)){
-                return{
-                    success : false,
-                    error : "slot_is_not_available"
-                } 
+                if(query.byTherapist){
+                    var updateSchedule = true;
+                }
+                else {
+                    return{
+                        success : false,
+                        error : "slot_is_not_available"
+                    }
+                }
             }
             var appointmentID = getUID(32);
             return STORAGE.get({
