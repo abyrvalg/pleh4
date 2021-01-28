@@ -27,7 +27,7 @@ const msg = {
                     params :  [""+update.message.from.id]
             }).then(therapist=>{
                     if(!therapist) {
-                        if(!/\w{32}}|\w{64}/.test(update.message.text)) {
+                        if(!/\w{32}|\w{64}/.test(update.message.text)) {
                             msg.send({
                                 chat_id : update.message.from.id,
                                 text : "Йо. я тебя пока не знаю, введи свой серийный номер"
