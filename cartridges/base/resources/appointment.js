@@ -96,7 +96,14 @@ module.exports = {
                         subject : mailData.msg.appointmentNewSubject
                     }).then(info=>{
                         LOGGER.debug("Email is sent. Details: "+JSON.stringify(info));
-                        return {success: true};
+                            return mailData.therapist.tg_id ? require(APP_ROOT+"/modules/app")("utils", "msg").send({
+                                chat_id : mailData.therapist.tg_id, 
+                                parse_mode : "MarkdownV2",
+                                text : 'Новая заявка\\. От '+query.name+'\\. Телефон\\: '+query.phone+'\\. Предпочитает '+["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall]+ 
+                                ' как способ связи\\. [список заявок]('+urlUtils.getFullUrl("appointment/list?therapist="+query.therapist)+')' 
+                            }).then(r=>{
+                                return {success : true}
+                            }) : {succsess : true};
                     });
                 });                       
             });

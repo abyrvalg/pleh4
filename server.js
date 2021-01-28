@@ -130,3 +130,4 @@ if(onStart.length){
 else {
 	start();
 }
+require(APP_ROOT+"/modules/app")("utils", "msg").listen();
