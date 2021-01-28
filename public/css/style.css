@@ -84,3 +84,12 @@
 .input_wrap_vertical{
     margin : 5px;
 }
+.confirm_window {
+    background-color: #46b450;
+    width: 1170px;
+    font-family: "Montserrat", sans-serif;
+    text-align: center;
+    padding: 30px 0px;
+    color: #fefefe;
+    font-size: 20px;
+}

@@ -13,7 +13,7 @@ class TherapistModel {
 			that.obj.appointments.forEach(appointment=>{
 				let yearMonth = dateUtils.getYearMonth(appointment.date);		
 				that.obj.schedules = that.obj.schedules.map(schedule=>{
-					if(schedule.month == yearMonth) {	
+					if(schedule.month == yearMonth && dateUtils.isSlotAvailable(BigInt(schedule.schedule), appointment.date, appointment.time)) {
 						schedule.schedule = dateUtils.substractDateTimeFromSchedule(BigInt(schedule.schedule), appointment.date, appointment.time).toString();
 					}
 					return schedule;					;

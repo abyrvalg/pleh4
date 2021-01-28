@@ -9,4 +9,6 @@ choosetime=Виберіть час
 misseingerror=Це обов'язкове поле
 invaliderror=Невірне значення
 
+appointmentconfirm=Дякуємо за ваше повідомлення. Воно було надіслане.
+
 send=Надіслати

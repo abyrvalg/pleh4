@@ -115,11 +115,7 @@
                     }).then(resp=>{
                         resp.json && resp.json().then(json=>{
                             if(json.success){
-                                document.getElementById("appointment_name").value = "",
-                                document.getElementById("appointment_phone").value = "",
-                                document.getElementById("appointment_date").value = "",
-                                document.getElementById("appiontment_time").getElementsByTagName("option")[0].selected = true;
-                                alert("Заявка отправлена");
+                                document.getElementById("appointment_form").innerHTML = document.querySelector(".confirm_container").innerHTML
                             }
                         })                        
                     }).catch(err=>{
