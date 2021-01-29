@@ -100,8 +100,10 @@ module.exports = {
 							phone : r[i].client_phone,
 							num : appointmentNum
 						});
-						therapists[r[i].id].appointmentNums = therapists[r[i].id].appointmentNums || [];
-						therapists[r[i].id].appointmentNums.push(appointmentNum);
+						therapists[r[i].id].appointmentNums = therapists[r[i].id].appointmentNums || {};
+						let yearMonth = dateUtils.getYearMonth(r[i].appointment_date);
+						therapists[r[i].id].appointmentNums[yearMonth] = therapists[r[i].id].appointmentNums[yearMonth] || [];
+						therapists[r[i].id].appointmentNums[yearMonth].push(appointmentNum);
 						processed.appointments.push(r[i].appointment_id);
 					}
 

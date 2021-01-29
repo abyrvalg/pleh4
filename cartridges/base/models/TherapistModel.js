@@ -21,10 +21,10 @@ class TherapistModel {
 			});
 		}
 	}
-	getAppointmentByNum(num){		
-		if(!this.obj.appointments || !this.obj.appointmentNums || !~this.obj.appointmentNums.indexOf(num)) return null;
+	getAppointmentByNum(monthYear, num){
+		if(!this.obj.appointments || !this.obj.appointmentNums || !this.obj.appointmentNums[monthYear] || !~this.obj.appointmentNums[monthYear].indexOf(num)) return null;
 		for(let i in this.obj.appointments)
-			if(this.obj.appointments[i].num == num) 
+			if(this.obj.appointments[i].num == num || dateUtils.getYearMonth(this.obj.appointments[i].date) == monthYear)
 				return this.obj.appointments[i];		
 	}
 	getSchedule(month){

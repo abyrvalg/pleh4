@@ -22,7 +22,7 @@ module.exports = {
 						let hours = [];
 						for(let k = 0; k < 24; k++){
 							let counter = j*24+k,
-								appointment = therapist.getAppointmentByNum(counter);
+								appointment = therapist.getAppointmentByNum(dateUtils.getYearMonth(now), counter);
 							hours.push({
 								hour : k,
 								fromTo : k + " - "+(k+1),
