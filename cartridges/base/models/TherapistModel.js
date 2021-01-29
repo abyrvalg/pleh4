@@ -70,6 +70,7 @@ class TherapistModel {
 					}
 				});
 				var date = monthFrame[0];
+				date.setDate(1)
 				while(date < monthFrame[1]){
 					months.push(dateUtils.getYearMonth(date))
 					date.setMonth(date.getMonth() + 1);
