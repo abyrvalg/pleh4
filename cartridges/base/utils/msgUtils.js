@@ -23,7 +23,7 @@ const msg = {
         api.on('update', update => {
             if(update.message && update.message.from){
                 STORAGE.get({
-                    query: "select id, first_name from public.therapistss where tg_id=$1", 
+                    query: "select id, first_name from public.therapists where tg_id=$1", 
                     params :  [""+update.message.from.id]
             }).then(therapist=>{
                     if(!therapist) {
