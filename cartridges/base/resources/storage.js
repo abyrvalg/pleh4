@@ -4,8 +4,12 @@ function getTherapist(params){
 	var queryParams = []; 
 	if(params.id){
 		queryParams.push(params.id);
-		return STORAGE.get({query : "select * from public.therapists where id=$1", params : queryParams});
-	}	
+		return STORAGE.get({query : "select * from public.users where id=$1", params : queryParams});
+	}
+	if(params.tg_id){
+		queryParams.push(params.tg_id);
+		return STORAGE.get({query : "select * from public.users where tg_id=$1", params : queryParams});
+	}
 }
 module.exports = {
 	index(query){
@@ -14,6 +18,9 @@ module.exports = {
 	therapists : getTherapist,
 	therapist(id) {
 		return getTherapist({id:id}).then(r=>r[0]);
+	},
+	therapistByTgID(tg_id) {
+		return getTherapist({tg_id:tg_id}).then(r=>r[0]);
 	},
 	appointment(id){
 		return STORAGE.get({
@@ -64,7 +71,7 @@ module.exports = {
 				} //TODO configure interval value
 			}
 			let sqlQuery = {
-				query : "select "+(appointmentsQuery ? appointmentsQuery.fields+", " : "")+" t.id, t.first_name, t.last_name, s.month, s.schedule from public.therapists as t\
+				query : "select "+(appointmentsQuery ? appointmentsQuery.fields+", " : "")+" t.id, t.first_name, t.last_name, s.month, s.schedule from public.users as t\
 				left join public.schedules as s on t.id = s.therapist and s.month in ("+months.join(",")+")\
 				"+(appointmentsQuery ? appointmentsQuery.join : "")+"\
 				where t.id = $1 order by s.month",
