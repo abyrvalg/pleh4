@@ -39,6 +39,7 @@
 .input_wrap{
     display: inline-block;
     vertical-align: top;
+    margin-top: 15px;
 }
 
 .form_field{
@@ -92,4 +93,8 @@
     padding: 30px 0px;
     color: #fefefe;
     font-size: 20px;
+}
+.field-top-label {
+    margin-top: -21px;
+    font-size: 18px;
 }
