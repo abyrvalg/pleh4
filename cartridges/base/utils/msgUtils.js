@@ -26,7 +26,7 @@ const msg = {
                     query: "select id, first_name from public.users where tg_id=$1", 
                     params :  [""+update.message.from.id]
             }).then(therapist=>{
-                    if(!therapist) {
+                    if(!therapist || therapist.length == 0) {
                         if(!/\w{32}|\w{64}/.test(update.message.text)) {
                             msg.send({
                                 chat_id : update.message.from.id,
@@ -40,7 +40,6 @@ const msg = {
                                 query : "update public.users set tg_id = $1 where id = $2",
                                 params : [""+update.message.from.id, update.message.text],
                             }).then(r=>{
-                                console.log(r.updatedRows);
                                 if(r.updatedRows == 1) {
                                     msg.send({
                                         chat_id : update.message.from.id,
