@@ -98,3 +98,6 @@
     margin-top: -21px;
     font-size: 18px;
 }
+.pointer {
+    cursor: pointer;
+}

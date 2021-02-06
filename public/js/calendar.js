@@ -8,7 +8,13 @@ window.onload = function(){
     document.querySelectorAll("#head_month")[0].addEventListener("change", (e)=>{
         slelectMonth(e.target.value)
     });
-
+    document.querySelector(".month_sheet").addEventListener("click", e=>{
+        if(e.target.classList.contains("day_colum")) {
+            e.target.querySelectorAll("input").forEach(el=>{
+                el.checked = false;
+            });
+        }
+    });
     document.querySelector("[name=submit_schedule]").addEventListener("click", (e)=>{
         let monthSheets = document.querySelectorAll(".month_sheet[data-val='"+document.querySelectorAll("#head_month")[0].value+"']"),
             query = {"therapists_setSchedules":{

@@ -65,7 +65,7 @@
 		<div class="left month_sheet" data-val="{{MY}}">
 			<div class="month_sheet_header">
 				{{#each days}}
-					<span class="left day_of_week_{{day}}">{{date}}
+					<span class="left day_colum pointer day_of_week_{{day}}">{{date}}
 						{{#each hours}}
 							<div class="row"> <input value="{{num}}" {{#if appointment}} title="{{appointment.name}} {{appointment.phone}}" disabled {{/if}} class="slot" name="slot_{{hour}}" type="checkbox" {{#if work}}checked{{/if}}/></div>
 						{{/each}}
