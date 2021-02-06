@@ -9,8 +9,8 @@ window.onload = function(){
         slelectMonth(e.target.value)
     });
     document.querySelector(".month_sheet").addEventListener("click", e=>{
-        if(e.target.classList.contains("day_colum")) {
-            e.target.querySelectorAll("input").forEach(el=>{
+        if(e.target.classList.contains("day_colum_head")) {
+            e.target.closest(".day_colum").querySelectorAll("input").forEach(el=>{
                 el.checked = false;
             });
         }
