@@ -1,6 +1,5 @@
 const MONTH_FORWARD_TO_SET = 3;
 const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
-const MONTH_BACKWARD_TO_SET = 3;
 
 class TherapistModel {
 	constructor(obj){
@@ -53,37 +52,42 @@ class TherapistModel {
 		}
 		return schedule;
 	}
-	static get(arg, session){
-		var $ = session.getVar("liteql");
-		if(typeof arg == "object" && arg.schedule) {
-			let months = [];
-			if(~arg.schedule.months.indexOf("-")){
-				var monthFrame = arg.schedule.months.split("-");
-				monthFrame = monthFrame.map(month=>{
-					if(!month){
-						let date = new Date();
-						date.setMonth(date.getMonth() + MONTH_FORWARD_TO_SET);
-						return date;
-					}
-					if(month == "now"){
-						return new Date();
-					}
-				});
-				var date = monthFrame[0];
-				date.setDate(1)
-				while(date < monthFrame[1]){
-					months.push(dateUtils.getYearMonth(date))
-					date.setMonth(date.getMonth() + 1);
-				}		
+	static get(arg, $){
+		if(typeof arg == "object") {
+			if(arg.schedule){
+				let months = [];
+				if(~arg.schedule.months.indexOf("-")){
+					var monthFrame = arg.schedule.months.split("-");
+					monthFrame = monthFrame.map(month=>{
+						if(!month){
+							let date = new Date();
+							date.setMonth(date.getMonth() + MONTH_FORWARD_TO_SET);
+							return date;
+						}
+						if(month == "now"){
+							return new Date();
+						}
+					});
+					var date = monthFrame[0];
+					date.setDate(1)
+					while(date < monthFrame[1]){
+						months.push(dateUtils.getYearMonth(date))
+						date.setMonth(date.getMonth() + 1);
+					}		
+				}
+				else {
+					months = arg.schedule.months;
+				}
+				var dataProm  = $.call({"!storage_schedules":[{
+					"months":months,
+					"getAppointments" : arg.getAppointments
+				}]});
 			}
-			else {
-				months = arg.schedule.months;
-			}			
-			var dataProm  = $.call({"!storage_schedules":[{
-				"id":arg.id,
-				"months":months,
-				"getAppointments" : arg.getAppointments
-			}]});
+			else if(arg.tg_id){
+				var dataProm = $.call({
+					"!storage_therapistByTgID" : [arg.tg_id]
+				});
+			}
 		}
 		else {
 			var dataProm = $.call({
@@ -95,7 +99,7 @@ class TherapistModel {
 				return;
 			}
 			(obj.schedules)
-			return new TherapistModel(Array.isArray(obj) ? obj[0] : obj[arg.id || arg]);
+			return new TherapistModel(Array.isArray(obj) ? obj[0] : obj[arg.id || session.getVar("currentProfile").id || arg]);
 		});
 	}
 }

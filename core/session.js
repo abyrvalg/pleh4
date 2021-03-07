@@ -44,7 +44,11 @@ function getSid(length) {
 		text += possible.charAt(Math.floor(Math.random() * possible.length));
 	return text;
 }
-
+var ensureMethods = {
+	auth(session){
+		return !!session.getVar("currentProfile");
+	}	
+}
 class Session {
 	constructor(sid){
 		this.sid = sid;
@@ -55,6 +59,15 @@ class Session {
 	}
 	getVar(key){
 		return this.scope.get(key);
+	}
+	ensure(params){
+		var params = typeof params == "string" ? [params] : params;
+		for(let key in params){
+			if(!ensureMethods[params[key]](this)){
+				return false;
+			}
+		}
+		return true;
 	}
 }
 module.exports = {

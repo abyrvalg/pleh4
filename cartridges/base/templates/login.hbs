@@ -1,0 +1,18 @@
+<head>
+	<link rel="stylesheet" href="/css/style.css">
+    <script src="/js/form.js"></script>
+</head>
+<div>
+    <form action="" data-target="user_login" data-cbsuccess="route:/user/index" data-cberror_invalid_login_or_password="errorShow:invalid_credentials" data-cberror_user_not_confirm="route:/user/confirm">
+        <div class="form_error hidden" data-error="invalid_credentials">Login or password is invalid</div>
+        <div class="input_wrap_vertical">
+            <input name="email" required placeholder="Email"/>
+        </div>
+        <div class="input_wrap_vertical">
+            <input name="password" required type="password" placeholder="Пароль"/>
+        </div>
+        <div class="input_wrap_vertical">
+            <input type="submit" class="register_submit" value="Login"/>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,12 @@
+<head>
+	<link rel="stylesheet" href="/css/style.css">
+    <script src="/js/form.js"></script>
+</head>
+<div>
+    {{#each this}}
+        <div>{{topic}}</div>
+        {{#each elements}}
+            <a href="{{route}}">{{name}}</a>
+        {{/each}}
+    {{/each}}
+</div>

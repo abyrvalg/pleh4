@@ -58,6 +58,7 @@ function start() {
 			if(!$) {
 				$ = session.setVal(req, 'liteql', new LiteQL());
 			}
+			$.scope.session = session.get(req);
 			if(locale) {
 				promise = $.call({'@set' : ['locale', locale]});
 			}

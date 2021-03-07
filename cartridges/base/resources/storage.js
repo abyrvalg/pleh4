@@ -1,5 +1,8 @@
 const STORAGE = require(APP_ROOT+"/modules/app")('storage');
 const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
+const dataUtils = require(APP_ROOT+"/modules/app")("utils", "data");
+const Session = require(APP_ROOT+'/core/session');
+
 function getTherapist(params){
 	var queryParams = []; 
 	if(params.id){
@@ -12,10 +15,12 @@ function getTherapist(params){
 	}
 }
 module.exports = {
-	index(query){
-		return STORAGE.get(query);
+	therapists(params) {
+		if(!this.scope.session.ensure("auth")){
+			return {success: false, error: "not_available"}
+		}
+		return getTherapist(params);
 	},
-	therapists : getTherapist,
 	therapist(id) {
 		return getTherapist({id:id}).then(r=>r[0]);
 	},
@@ -28,7 +33,30 @@ module.exports = {
 			params : [id]
 		}).then(r=>r[0]);
 	},
-	appointments(therapistID){
+	appointmentAndSchedule(arg){
+		return STORAGE.get({
+            query : "select s.schedule, ap.id as appointment_id from public.schedules as s \
+                left join public.appointments as ap on ap.therapist=$1 and ap.date = $3 and ap.time = $4 and (ap.status > 0 or (ap.status = 0 and ap.create_date < now() + interval '6 hours'))\
+                where s.therapist=$1 and s.month=$2", 
+            params : [arg.therapistID, dateUtils.getYearMonth(new Date(arg.date)), arg.date, arg.time]
+        }).then(res=>res && res[0]);
+	},
+	addAppointment(arg){
+		var appointmentID = dataUtils.getUID(32);
+		return STORAGE.get({
+			query : "insert into public.appointments (id, name, phone, therapist, date, time, status, how_to_call, create_date)\
+                    values ($1, $2, $3, $4, $5, $6, $7, $8, now())",
+            params : [appointmentID, arg.name, arg.phone, arg.therapistID, arg.date, +arg.time, 0, +arg.howToCall]
+		});
+	},
+	appointments(){
+		if(!this.scope.session.ensure("auth")){
+			return {success: false, error: "not_available"}
+		}
+		therapistID = this.scope.session.getVar("currentProfile").id;
+		if(!therapistID){
+			return {success : false, error : "therapist_id_is_missing"}
+		}
 		return STORAGE.get({
 			query : "select * from public.appointments where therapist=$1 and date > now() order by date, time",
 			params : [therapistID]
@@ -48,7 +76,8 @@ module.exports = {
 		}));
 	},
 	schedules(params){
-		var queryParams = []; 
+		var queryParams = [],
+			profile = this.scope.session.getVar("currentProfile");
 		if(params.id){
 			queryParams.push(params.id);
 			var months = [],
@@ -86,8 +115,8 @@ module.exports = {
 				for (let i in r) {
 					therapists[r[i].id] = therapists[r[i].id]  || {
 						id : r[i].id,
-						first_name : r[i].first_name,
-						last_name : r[i].last_name,
+						first_name : r[i].first_name || (profile && profile.first_name),
+						last_name : r[i].last_name || (profile && profile.last_name),
 						schedules : [],
 						appointments : []
 					};
@@ -120,5 +149,27 @@ module.exports = {
 				console.log(err);
 			})
 		}
+	},
+	updateAppointment(query){
+		if(!this.scope.session.ensure("auth")){
+			return {success: false, error: "not_available"}
+		}
+        var setFields = [],
+			session = this.scope.session,
+			profile = session && session.getVar("currentProfile"),
+            params = [query.id, profile && profile.id];
+        ["status", "name", "phone", "time", "date"].forEach(e=>{
+            if(query[e]){
+                params.push(e == "date" ? new Date(query[e]) : query[e]);
+                setFields.push(e+" = $"+params.length)
+            }
+        });  
+        if(!setFields.length) return;
+        return STORAGE.get({
+            query : "update public.appointments set "+setFields.join(",")+" where id = $1 and therapist = $2",
+            params : params
+        }).then(r=>{
+            return {status : r.updatedRows ? "ok" : "error"}
+        });
 	}
 }

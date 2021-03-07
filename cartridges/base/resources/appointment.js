@@ -1,36 +1,19 @@
 const STORAGE = require(APP_ROOT+'/core/storage');
 const LOGGER  = require(APP_ROOT+'/core/logger');
 const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
+const dataUtils = require(APP_ROOT+"/modules/app")("utils", "data");
 const urlUtils = require(APP_ROOT+"/modules/app")("utils", "url");
 const Session = require(APP_ROOT+"/modules/app")('session');
 
-function getUID(length) {
-	var text = "",
-		possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	for (var i = 0; i < length; i++)
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-	return text;
-}
 module.exports = {
-    update(query){
-        var setFields = [],
-            params = [query.id];
-        ["status", "name", "phone", "time", "date"].forEach(e=>{
-            if(query[e]){
-                params.push(e == "date" ? new Date(query[e]) : query[e]);
-                setFields.push(e+" = $"+params.length)
-            }
-        });  
-        if(!setFields.length) return;
-        return STORAGE.get({
-            query : "update public.appointments set "+setFields.join(",")+" where id = $1",
-            params : params
-        }).then(r=>{
-            return {status : r.updatedRows ? "ok" : "error"}
-        });
-    },
 	submit(query){
-        var date = new Date(query.date);
+        var date = new Date(query.date),
+            session = Session.get(this.scope['SID'])
+            profile = session.getVar("currentProfile"),
+            therapistID = (profile && profile.id) || query.therapist;
+        if(!therapistID) {
+            return {success: false, error : "therapist_id_is_missing"}
+        }
         LOGGER.debug("submit appointment. Date:");
         LOGGER.debug(date);
         if (isNaN(date.getTime())){
@@ -39,47 +22,24 @@ module.exports = {
                 error: "invalide_date"
             }
         }
-        return STORAGE.get({
-            query : "select s.schedule, ap.id as appointment_id from public.schedules as s \
-                left join public.appointments as ap on ap.therapist=$1 and ap.date = $3 and ap.time = $4 and (ap.status > 0 or (ap.status = 0 and ap.create_date < now() + interval '6 hours'))\
-                where s.therapist=$1 and s.month=$2", 
-            params : [query.therapist, dateUtils.getYearMonth(date), date, query.time]
-        }).then(res=>{
-            res = res && res[0];
-            if(res.appointment_id){
-                return {
-                    success : false,
-                    error : "another_appointment_exist"
+        return require(APP_ROOT+"/modules/app")("model").get("Appointment").then(Appointment=>{
+            return Appointment.submit({
+                therapistID : therapistID,
+                date : date,
+                time : query.time,
+                name : query.name,
+                phone : query.phone,
+                howToCall : query.howToCall,
+                byTherapist : query.byTherapist
+            }, session.getVar("liteql")).then(res=>{
+                if(!res) {
+                    return {success:false, error: "internal"}
                 }
-            }
-            if(!res.schedule){
-                return{
-                    success : false,
-                    error : "no_schedule_defined"
+                if(!res.success) {
+                    return res;
                 }
-            }
-            if(!dateUtils.isSlotAvailable(BigInt(res.schedule), date, +query.time)){
-                if(query.byTherapist){
-                    var updateSchedule = true;
-                }
-                else {
-                    return{
-                        success : false,
-                        error : "slot_is_not_available"
-                    }
-                }
-            }
-            var appointmentID = getUID(32);
-            return STORAGE.get({
-                query : "insert into public.appointments (id, name, phone, therapist, date, time, status, how_to_call, create_date)\
-                    values ($1, $2, $3, $4, $5, $6, $7, $8, now())",
-                params : [appointmentID, query.name, query.phone, query.therapist, date, +query.time, 0, +query.howToCall]
-            }).then(res=>{
-                if(!res){
-                    return {success : false, error : "internal"};
-                }
-                return Session.get(this.scope.SID).getVar("liteql").call([
-                    {"storage_therapist>therapist":[query.therapist]},
+                return session.getVar("liteql").call([
+                    {"storage_therapist>therapist":[therapistID]},
                     {"base_msg>msg" : ["mail", ["\\w*"]]},
                     {"base_template>body" : ["mails/newAppointment", {
                         "name" : query.name, 
@@ -87,7 +47,7 @@ module.exports = {
                         "date" : dateUtils.dateToString(date),
                         "time" : dateUtils.timeToString(+query.time),
                         "howToCall" : ["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall],
-                        "appoinmentListLink" : urlUtils.getFullUrl("appointment/list?therapist="+query.therapist)
+                        "appoinmentListLink" : urlUtils.getFullUrl("appointment/list")
                     }]}
                 ]).then(mailData=>{
                     return require(APP_ROOT+"/modules/app")("utils", "email").send({
@@ -100,19 +60,13 @@ module.exports = {
                                 chat_id : mailData.therapist.tg_id, 
                                 parse_mode : "MarkdownV2",
                                 text : 'Новая заявка\\. От '+query.name+'\\. Телефон\\: '+query.phone+'\\. Предпочитает '+["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall]+ 
-                                ' как способ связи\\. [список заявок]('+urlUtils.getFullUrl("appointment/list?therapist="+query.therapist)+')' 
+                                ' как способ связи\\. [список заявок]('+urlUtils.getFullUrl("appointment/list")+')' 
                             }).then(r=>{
                                 return {success : true}
-                            }) : {succsess : true};
+                            }) : {success : true};
                     });
-                });                       
+                });  
             });
-        }).catch(err=>{
-            LOGGER.error(err);
-            return {
-                success: false,
-                error : "internal"
-            }
         });
     }
 }

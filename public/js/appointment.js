@@ -7,7 +7,7 @@ window.onload = function(){
                     'Content-Type': 'application/json;charset=utf-8'
                 },
                 body: JSON.stringify({
-                    "!appointment_update" : [{id : e.target.dataset.id, status : +e.target.dataset.status}]
+                    "!storage_updateAppointment" : [{id : e.target.dataset.id, status : +e.target.dataset.status}]
                 })
             }).then(r=>{
                 r && r.json && r.json().then(json=>{
@@ -51,6 +51,7 @@ window.onload = function(){
     });
     document.querySelector(".submit_appointment").addEventListener("click", e=>{
         if(!document.getElementById("appiontment_time").value || !document.getElementById("calendar_inp").value) return;
+        var therapistParam = location.search.match(/therapist\=(\w+)/);
         fetch("/ua/data", {
             method : 'POST',
             headers: {
@@ -58,7 +59,6 @@ window.onload = function(){
             },
             body: JSON.stringify(e.target.dataset.appointment_id == 'new' ? {
                 "!appointment_submit" : [{
-                    therapist : location.search.match(/therapist\=(\w+)/)[1],
                     name : document.getElementById("client_name").value,
                     phone : document.getElementById("client_phone").value,
                     date : picker.dateSelected.toString().substr(0 ,24),
@@ -67,7 +67,7 @@ window.onload = function(){
                     byTherapist : true
                 }]
             } : {
-                "!appointment_update" : [{
+                "!storage_updateAppointment" : [{
                     id : e.target.dataset.appointment_id,
                     name : document.getElementById("client_name").value,
                     phone : document.getElementById("client_phone").value,
