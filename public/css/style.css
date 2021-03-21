@@ -41,6 +41,8 @@
     display: inline-block;
     vertical-align: top;
     margin-top: 15px;
+    height: 65px;
+    width: 160px;
 }
 
 .form_field{
@@ -97,7 +99,7 @@
     font-size: 20px;
 }
 .field-top-label {
-    margin-top: -21px;
+    margin-top: -26px;
     font-size: 18px;
 }
 .pointer {
@@ -129,4 +131,7 @@
 }
 .choostime{
     width: 200px;
+}
+#selectTime{
+    height: 15px !important;
 }
