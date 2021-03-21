@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="https://unpkg.com/js-datepicker/dist/datepicker.min.css">
     <script src="https://unpkg.com/js-datepicker"></script>
 </head>
+{{@async head() /}}
 <div class="appointment_table">
     <div class="table_head">
         <div class="table_cell">Name</div>
@@ -15,30 +16,30 @@
         <div class="table_cell">Move</div>
     </div>
      <div class="appointment_list">
-        {{#each this}}
+        {{@each(it)=>app}}
             <div class="appointment">
-                <div class="table_cell name">{{name}}</div>|
-                <div class="table_cell phone">{{phone}}</div>
-                <div class="table_cell how_to_call" data-num="{{how_to_call_num}}">{{how_to_call}}</div>|
-                <div class="table_cell date">{{date}}</div>|
-                <div class="table_cell time" data-num="{{time_num}}">{{time}}</div>
-                <div class="table_cell change_status" data-id="{{id}}">
-                    {{#if confirmed}}
+                <div class="table_cell name">{{app.name}}</div>|
+                <div class="table_cell phone">{{app.phone}}</div>
+                <div class="table_cell how_to_call" data-num="{{app.how_to_call_num}}">{{app.how_to_call}}</div>|
+                <div class="table_cell date">{{app.date}}</div>|
+                <div class="table_cell time" data-num="{{app.time_num}}">{{app.time}}</div>
+                <div class="table_cell change_status" data-id="{{app.id}}">
+                    {{@if (app.confirmed)}}
                   <div class="status">V</div>
-                    {{else}}
+                    {{#else}}
                        <div class="status"> 
-                           <input class="button_confirm" data-id="{{id}}" type="submit" data-status="1" value="V"/>
+                           <input class="button_confirm" data-id="{{app.id}}" type="submit" data-status="1" value="V"/>
                         </div>
                     {{/if}}
-                    {{#if canceled}}
+                    {{@if (app.canceled)}}
                         <div class="status">X</div>
-                    {{else}}
+                    {{#else}}
                     <div class="status">
-                        <input class="button_cancel" data-id="{{id}}" type="submit" data-status="-1" value="X"/>
+                        <input class="button_cancel" data-id="{{app.id}}" type="submit" data-status="-1" value="X"/>
                     </div>
                     {{/if}}
                 </div> 
-                <div class="table_cell"><input class="move_appointment" data-id="{{id}}" type="submit" value="Перенести"/></div>
+                <div class="table_cell"><input class="move_appointment" data-id="{{app.id}}" type="submit" value="Перенести"/></div>
             </div>
         {{/each}}
     </div> 

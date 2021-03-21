@@ -3,25 +3,26 @@ const LOGGER  = require(APP_ROOT+'/core/logger');
 const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
 const dataUtils = require(APP_ROOT+"/modules/app")("utils", "data");
 const urlUtils = require(APP_ROOT+"/modules/app")("utils", "url");
-const Session = require(APP_ROOT+"/modules/app")('session');
 
 module.exports = {
 	submit(query){
-        var date = new Date(query.date),
-            session = Session.get(this.scope['SID'])
+        var date = query.date && new Date(query.date),
+            session = this.scope.session;
             profile = session.getVar("currentProfile"),
-            therapistID = (profile && profile.id) || query.therapist;
+            therapistID = (profile && profile.id) || query.therapist,
+            currentInstance = this;
         if(!therapistID) {
             return {success: false, error : "therapist_id_is_missing"}
         }
         LOGGER.debug("submit appointment. Date:");
         LOGGER.debug(date);
-        if (isNaN(date.getTime())){
+        if (date && isNaN(date.getTime())){
             return {
                 success: false,
                 error: "invalide_date"
             }
         }
+        console.log(date);
         return require(APP_ROOT+"/modules/app")("model").get("Appointment").then(Appointment=>{
             return Appointment.submit({
                 therapistID : therapistID,
@@ -31,21 +32,21 @@ module.exports = {
                 phone : query.phone,
                 howToCall : query.howToCall,
                 byTherapist : query.byTherapist
-            }, session.getVar("liteql")).then(res=>{
+            }, currentInstance.scope.$).then(res=>{
                 if(!res) {
                     return {success:false, error: "internal"}
                 }
                 if(!res.success) {
                     return res;
                 }
-                return session.getVar("liteql").call([
+                return currentInstance.scope.$.call([
                     {"storage_therapist>therapist":[therapistID]},
                     {"base_msg>msg" : ["mail", ["\\w*"]]},
                     {"base_template>body" : ["mails/newAppointment", {
                         "name" : query.name, 
                         "phone" : query.phone,
-                        "date" : dateUtils.dateToString(date),
-                        "time" : dateUtils.timeToString(+query.time),
+                        "date" : date && dateUtils.dateToString(date),
+                        "time" : query.time && dateUtils.timeToString(+query.time),
                         "howToCall" : ["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall],
                         "appoinmentListLink" : urlUtils.getFullUrl("appointment/list")
                     }]}

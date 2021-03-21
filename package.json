@@ -19,6 +19,7 @@
     "redis": "^2.8.0",
     "save": "^2.4.0",
     "socket.io": "^2.2.0",
+    "squirrelly": "^8.0.8",
     "telegram-bot-api": "^2.0.1",
     "webpack": "^5.11.0",
     "winston": "^3.2.1"

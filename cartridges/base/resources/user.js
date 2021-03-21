@@ -120,7 +120,8 @@ module.exports = {
         return profile.roles.map(role=>role.name);
     },
     getDashboard(){
-        var profile = this.scope.session.getVar("currentProfile");
+        var profile = this.scope.session.getVar("currentProfile"),
+            local = this.scope['locale'];
         if(!profile) return {error: "not_authorized"};
         if(!profile.roles) return [];
         var permissionsNums  = [];
@@ -137,21 +138,32 @@ module.exports = {
                 processed = {};
             permissions.forEach(el=>{
                 if(~el.name.indexOf(".")){
-                    let splitName = el.name.split(".");
-                    if(processed[splitName[0]] === undefined){
-                        structurred.push([]);
-                        structurred[structurred.length-1] = {
-                            topic : splitName[0],
-                            elements : [el]
+                    let splitName = el.name.split("."),
+                        structuredElement = {
+                            name : splitName[1], 
+                            route : el.route,
+                            displayName : "msg(profile_"+splitName[1]+")"
                         };
+                    if(processed[splitName[0]] === undefined){
+                        structurred.push({
+                            topicName : "msg(profile_"+splitName[0]+")",
+                            elements : [structuredElement]
+                        });
                         processed[splitName[0]] = structurred.length-1;
                     }
                     else {
-                        structurred[processed[splitName[0]]].elements.push(el);
+                        structurred[processed[splitName[0]]].elements.push(structuredElement);
                     }
                 }
             });
-            return  structurred;
+            return  require(APP_ROOT+"/modules/app")('configUtil').localizeObj(structurred, local);
         });
+    },
+    isAuthorized(){
+        return !!this.scope.session.getVar("currentProfile");
+    },
+    logout(){
+        this.scope.session.setVar("currentProfile", null);
+        return {success:true}
     }
 }

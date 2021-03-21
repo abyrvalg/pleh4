@@ -19,6 +19,7 @@
 .table_cell {
     width: 100px;
     display: inline-block;
+    overflow: hidden;
 }
 .table_head{
     background-color: #cbcbcb;
@@ -100,4 +101,27 @@
 }
 .pointer {
     cursor: pointer;
+}
+
+.head_menu_block {
+    border: solid;
+    padding: 5px;
+    width: 100px;
+    margin: 0px 5px 5px 0px;
+}
+.head_menu_block_head{
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+.head_menu{
+    background-color: #cecece;
+}
+
+.head_menu_block_item {
+    margin:2px;
+}
+
+.checkbox_wrapper{
+    text-align: center;
+    margin-top: 20;
 }

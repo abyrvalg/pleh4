@@ -20,31 +20,45 @@ class AppiontmentModel {
 		});
 	}
 	static submit(arg, $){
-		return $.call({"!storage_appointmentAndSchedule":[{
-			therapistID: arg.therapistID, 
-			date: arg.date,
-			time: arg.time
-		}]}).then(res=>{
-            if(res && res.appointment_id){
-                return {
-                    success : false,
-                    error : "another_appointment_exist"
-                }
-            }
-            if(!res || !res.schedule){
-                return{
-                    success : false,
-                    error : "no_schedule_defined"
-                }
-            }
-            if(!dateUtils.isSlotAvailable(BigInt(res.schedule), arg.date, +arg.time)){
-                if(!arg.byTherapist){
-                    return{
+		return (arg.date && arg.time
+        ? $.call({"!storage_appointmentAndSchedule":[{
+                therapistID: arg.therapistID, 
+                date: arg.date,
+                time: arg.time
+            }]}).then(res=>{
+                if(res && res.appointment_id){
+                    return {
                         success : false,
-                        error : "slot_is_not_available"
+                        error : "another_appointment_exist"
                     }
                 }
-            }           
+                if(!res || !res.schedule){
+                    return{
+                        success : false,
+                        error : "no_schedule_defined"
+                    }
+                }
+                if(!dateUtils.isSlotAvailable(BigInt(res.schedule), arg.date, +arg.time)){
+                    if(!arg.byTherapist){
+                        return{
+                            success : false,
+                            error : "slot_is_not_available"
+                        }
+                    }
+                }           
+                return {success : true}
+            }).catch(err=>{
+                LOGGER.error(err);
+                return {
+                    success: false,
+                    error : "internal"
+                }
+            }) 
+        : Promise.resolve({success : true})
+        ).then(status=>{
+            if(!status.success){
+                return status;
+            }
             return $.call({
                 "!storage_addAppointment": [{
 					name : arg.name, 
@@ -60,12 +74,6 @@ class AppiontmentModel {
                 }
                 return {success: true}                    
             });
-        }).catch(err=>{
-            LOGGER.error(err);
-            return {
-                success: false,
-                error : "internal"
-            }
         });
 	}
 }

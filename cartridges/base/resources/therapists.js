@@ -39,7 +39,8 @@ module.exports = {
 	},
 	getSchedules(query){
 		var profile = this.scope.session.getVar("currentProfile"),
-			therapistID = (profile && profile.id) || query.therapist;
+			therapistID = (profile && profile.id) || query.therapist,
+			$ = this.scope.$;
 		return require(APP_ROOT+"/modules/app")("model").get("Therapist").then(Therapist=>{
 			return Therapist.get({
 				id : therapistID,
@@ -47,7 +48,7 @@ module.exports = {
 					months : "now-"
 				},
 				getAppointments : !!query.substractAppointments
-			}, this.scope.session.getVar("liteql")).then(therapist=>{
+			}, $).then(therapist=>{
 				if(query.substractAppointments){
 					therapist.substractAppointmentsFromSchedule();
 				}

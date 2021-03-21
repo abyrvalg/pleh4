@@ -1,29 +1,36 @@
-<form id="appointment_form" action="http://pleh4.herokuapp.com//data">
+<form id="appointment_form" action="http://pleh4.herokuapp.com/data">
     <div class="input_wrap">
-        <input id="appointment_name" class="form_field" required minlength="3" data-invaliderror="{{invaliderror}}" data-missingerror="{{misseingerror}}" maxlength="20" placeholder="{{name}}"/>
+        <input id="appointment_name" class="form_field" required minlength="3" data-invaliderror="{{it.invaliderror}}" data-missingerror="{{it.misseingerror}}" maxlength="20" placeholder="{{it.name}}"/>
         <div class="input_error"></div>
     </div>
     <div class="input_wrap">
-        <input class="form_field" id="appointment_phone" type="tel" minlength="9" data-invaliderror="{{invaliderror}}" data-missingerror="{{misseingerror}}" data-invaliderror="{{invaliderror}}" maxlength="12" data-pattern="^\+?[\d ]{9,15}$" required placeholder="{{phonenumber}}"/>
+        <input class="form_field" id="appointment_phone" type="tel" minlength="9" data-invaliderror="{{it.invaliderror}}" data-missingerror="{{it.misseingerror}}" data-invaliderror="{{it.invaliderror}}" maxlength="12" data-pattern="^\+?[\d ]{9,15}$" required placeholder="{{it.phonenumber}}"/>
         <div class="input_error"></div>
     </div>
     <div class="input_wrap">
-        <div class="field-top-label">{{howtocallcalllabel}}</div>
-        <select class="form_field" id="how_to_call" required data-missinerror="{{misseingerror}}">
-            <option value="0">{{howtocallviber}}</option>
-            <option value="1">{{howtocalltelegram}}</option>
-            <option value="2">{{howtocallwhatsapp}}</option>
-            <option value="3">{{howtocallcall}}</option> 
+        <div class="field-top-label">{{it.howtocallcalllabel}}</div>
+        <select class="form_field" id="how_to_call" required data-missinerror="{{it.misseingerror}}">
+            <option value="0">{{it.howtocallviber}}</option>
+            <option value="1">{{it.howtocalltelegram}}</option>
+            <option value="2">{{it.howtocallwhatsapp}}</option>
+            <option value="3">{{it.howtocallcall}}</option> 
         </select>
         <div class="input_error"></div>
     </div>
     <div class="input_wrap">
-        <input id="appointment_date" class="form_field" required readonly placeholder="{{choosedate}}" data-missingerror="{{misseingerror}}"/>
+        <div class="field-top-label">Вибрати дату та час</div>
+        <div class="checkbox_wrapper">
+            <input type="checkbox" id="selectTime" checked/>
+            <div class="input_error"></div>
+        </div>
+    </div>
+    <div class="input_wrap">
+        <input id="appointment_date" class="form_field" required readonly placeholder="{{it.choosedate}}" data-missingerror="{{it.misseingerror}}"/>
         <div class="input_error"></div>
     </div>
     <div class="input_wrap">
-        <select class="form_field" disabled="disabled" required id="appiontment_time" data-missingerror="{{misseingerror}}">
-            <option value="">{{choosetime}}</option>
+        <select class="form_field" disabled="disabled" required id="appiontment_time" data-missingerror="{{it.misseingerror}}">
+            <option value="">{{it.choosetime}}</option>
             <option value="0">00-01</option>
             <option value="1">01-02</option>
             <option value="2">02-03</option>
@@ -52,10 +59,10 @@
         <div class="input_error"></div>
     </div>
     <div class="input_wrap">
-        <input type="submit" class="form_submit" id="appointment_submit" value="{{send}}"/>
+        <input type="submit" class="form_submit" id="appointment_submit" value="{{it.send}}"/>
         <div class="input_error"></div>
     </div>
 </form>
 <div class="confirm_container hidden">
-    <div class="confirm_window">{{appointmentconfirm}}</div>
+    <div class="confirm_window">{{it.appointmentconfirm}}</div>
 </div>

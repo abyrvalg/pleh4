@@ -1,9 +1,9 @@
 {
 	"sessionExpirationTimeHours":1,
-	"sessionStorage":"memory",
+	"sessionStorage":"redis",
 	"noDB":true,
 	"cartridgePath":["base"],
-	"logTarget" : "console",
+	"logTarget" : "file",
 	"logLevels" : ["error", "warn", "debug", "fatal"],
 	"host" : "http://localhost",
 	"staticFolder" : "public",

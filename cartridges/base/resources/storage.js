@@ -21,8 +21,11 @@ module.exports = {
 		}
 		return getTherapist(params);
 	},
-	therapist(id) {
-		return getTherapist({id:id}).then(r=>r[0]);
+	therapist() {
+		if(!this.scope.session.ensure("auth")){
+			return {success: false, error: "not_available"}
+		}
+		return getTherapist({id:this.scope.session.getVar("currentProfile").id}).then(r=>r[0]);
 	},
 	therapistByTgID(tg_id) {
 		return getTherapist({tg_id:tg_id}).then(r=>r[0]);
@@ -42,11 +45,41 @@ module.exports = {
         }).then(res=>res && res[0]);
 	},
 	addAppointment(arg){
-		var appointmentID = dataUtils.getUID(32);
+		var vals = ["$1", "$2", "$3"],
+			names = ['id', 'name', 'phone'],
+			params = [dataUtils.getUID(32), arg.name, arg.phone];
+		if(arg.therapistID) {
+			params.push(arg.therapistID);
+			vals.push("$"+params.length);
+			names.push('therapist');
+
+		}
+		if(arg.date) {
+			params.push(arg.date);
+			vals.push("$"+params.length);
+			names.push('date');
+		}
+		if(arg.time) {
+			params.push(+arg.time);
+			vals.push("$"+params.length);
+			names.push('time');
+		}
+		if(arg.howToCall) {
+			params.push(+arg.howToCall);
+			vals.push("$"+params.length);
+			names.push('how_to_call');
+		}
+		params.push(0);
+		vals.push("$"+params.length);
+		names.push('status');
+
 		return STORAGE.get({
-			query : "insert into public.appointments (id, name, phone, therapist, date, time, status, how_to_call, create_date)\
-                    values ($1, $2, $3, $4, $5, $6, $7, $8, now())",
-            params : [appointmentID, arg.name, arg.phone, arg.therapistID, arg.date, +arg.time, 0, +arg.howToCall]
+			query : "insert into public.appointments ("+names.join(',')+", create_date)\
+                    values ("+vals.join(",")+", now())",
+            params : params
+		}).then(r=>{
+			console.log(r);
+			return r;
 		});
 	},
 	appointments(){
@@ -58,7 +91,7 @@ module.exports = {
 			return {success : false, error : "therapist_id_is_missing"}
 		}
 		return STORAGE.get({
-			query : "select * from public.appointments where therapist=$1 and date > now() order by date, time",
+			query : "select * from public.appointments where therapist=$1 and (date > now() or date is null) order by date, time",
 			params : [therapistID]
 		}).then(res=>res.map(ap=>{
 			return {
@@ -77,9 +110,10 @@ module.exports = {
 	},
 	schedules(params){
 		var queryParams = [],
-			profile = this.scope.session.getVar("currentProfile");
-		if(params.id){
-			queryParams.push(params.id);
+			profile = this.scope.session.getVar("currentProfile"),
+			therapistID = profile ? profile.id : params.id;
+		if(therapistID){
+			queryParams.push(therapistID);
 			var months = [],
 				dateMonthQuery = [];
 			for (let i in params.months){				

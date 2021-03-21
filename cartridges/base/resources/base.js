@@ -1,8 +1,43 @@
+
+
+var Sqrl = require('squirrelly');
+const partials =  require(APP_ROOT+"/modules/app")("route", "partials");
+const LOGGER = require(APP_ROOT+"/modules/app")('logger');	
+
+var initHelpers = (()=>{
+    var initted = false;
+    var helpers = [];
+    var lastScope = null;
+    return (scope)=>{
+        lastScope = scope;
+        if(initted) return;
+        for(let key in partials){
+            try{
+                Sqrl.helpers.define(key, ()=>{
+                    return partials[key](lastScope);
+                });
+                helpers.push(key);
+            }
+            catch(err){
+                LOGGER.error("error during defining helper"+key+" helper:")
+                LOGGER.error(err);
+            }
+        }
+        initted = true;
+        return helpers;
+    }
+})();
+
 function template(path, data){
-    var template = require(APP_ROOT+"/modules/app")('template').get(path);
-    return data ? template.then((tpl)=>{
-        return require('handlebars').compile(tpl)(data);
-    }): template
+    var template = require(APP_ROOT+"/modules/app")('template').get(path),
+        asyncHelpers = initHelpers(this.scope);
+        return data ? template.then((tpl)=>{
+                return Sqrl.render(tpl, data, { async: true, asyncHelpers: asyncHelpers}).catch(err=>{
+                    LOGGER.error('error during processing "'+path+'" template:')
+                    LOGGER.error(err);
+                    return "";
+                });
+        }): template;
 };
 
 module.exports = {
@@ -11,7 +46,7 @@ module.exports = {
 	},
 	template:template,
     templates(){
-        var paths = arguments,
+        var paths = arguments, 
         	result = {},
             promise = template(paths[0]).then((resp)=>{
                 result[paths[0]]=resp; 

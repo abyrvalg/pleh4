@@ -79,6 +79,7 @@ class TherapistModel {
 					months = arg.schedule.months;
 				}
 				var dataProm  = $.call({"!storage_schedules":[{
+					"id" : arg.id,
 					"months":months,
 					"getAppointments" : arg.getAppointments
 				}]});
@@ -91,7 +92,7 @@ class TherapistModel {
 		}
 		else {
 			var dataProm = $.call({
-				"!storage_therapists": [{id : arg}]
+				"!storage_therapist": []
 			});
 		}		
 		return dataProm.then((obj)=>{
@@ -99,7 +100,7 @@ class TherapistModel {
 				return;
 			}
 			(obj.schedules)
-			return new TherapistModel(Array.isArray(obj) ? obj[0] : obj[arg.id || session.getVar("currentProfile").id || arg]);
+			return new TherapistModel(Array.isArray(obj) ? obj[0] : obj[Object.keys(obj)[0]]);
 		});
 	}
 }

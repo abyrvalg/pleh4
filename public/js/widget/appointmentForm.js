@@ -47,9 +47,9 @@
                     }
                     slots["_"+currentMonth] = monthSlots;
                 });
-                date.setDate(date.getDate()-1);
+                date.setDate(date.getDate());
                 document.querySelector("#appointment_form_container").innerHTML = json.tmpl;
-                const picker = datepicker("#appointment_date", {
+                window.picker = datepicker("#appointment_date", {
                     customDays: [json.msg.dayofweakshort1, json.msg.dayofweakshort2, json.msg.dayofweakshort3, json.msg.dayofweakshort4, json.msg.dayofweakshort5, json.msg.dayofweakshort6, json.msg.dayofweakshort7],
                     startDay : 1,
                     customMonths : [json.msg.month1, json.msg.month2, json.msg.month3, json.msg.month4, json.msg.month5, json.msg.month6, json.msg.month7, json.msg.month8, json.msg.month9, json.msg.month10, json.msg.month11, json.msg.month12],
@@ -58,12 +58,13 @@
                     maxDate : date,
                     disabledDates : daysOff,
                     onSelect : (instance, selectedDate) =>{
-                        document.getElementById("appointment_date").value = instance.days[selectedDate.getDay()]+" "+selectedDate.getDate()+" "+instance.months[selectedDate.getMonth()]+ 
+                        document.getElementById("appointment_date").value = instance.days[(selectedDate.getDay() || 7)-1]+" "
+                            +selectedDate.getDate()+" "+instance.months[selectedDate.getMonth()]+ 
                             " "+selectedDate.getFullYear();
                         let $time = document.getElementById("appiontment_time"),
                             $options = $time.getElementsByTagName("option"),
                             month = selectedDate.getMonth(),
-                            date = selectedDate.getDate() - 1;
+                            date = selectedDate.getDate()-1;
                         $time.disabled = false;
                         $time.getElementsByTagName("option")[0].selected = true;
                         for(let i = 0; i < $options.length; i++){                           
@@ -75,7 +76,11 @@
                         }   
                     }
                 });
-
+                document.getElementById("selectTime").addEventListener("change", e=>{
+                    var removeAdd = e.target.checked ? "remove" : "add";
+                    document.getElementById("appointment_date").classList[removeAdd]("hidden");
+                    document.getElementById("appiontment_time").classList[removeAdd]("hidden");
+                });
                 document.getElementById("appointment_submit").addEventListener("click", e=>{
                     e.preventDefault();
                     var inputs = e.target.closest("form").querySelectorAll("input,select"),
@@ -85,7 +90,7 @@
                     });
                     for(let i in inputs){
                         let inp = inputs[i];
-                        if(inp.required && !inp.value){
+                        if(inp.required && !inp.value && !inp.classList.contains("hidden")){
                            valid = false; 
                            inp.closest(".input_wrap").querySelector(".input_error").innerHTML = inp.dataset.missingerror;
                         } else if(inp.dataset && inp.dataset.pattern && !(new RegExp(inp.dataset.pattern)).test(inp.value)){
@@ -99,11 +104,13 @@
                     var params = {
                             therapist : document.getElementById("appointment_form_container").dataset.therapist,
                             name : document.getElementById("appointment_name").value,
-                            phone : document.getElementById("appointment_phone").value,
-                            date : picker.dateSelected.toString().substr(0 ,24),
-                            time : document.getElementById("appiontment_time").value,
+                            phone : document.getElementById("appointment_phone").value,                            
                             howToCall : document.getElementById("how_to_call").value
                         };
+                    if(document.getElementById("selectTime").checked){
+                        params.date = picker.dateSelected && picker.dateSelected.getTime()+(5*1000*60*60); //adding 5 hours to compencate timezone difference. Should be rewritten with time zone adjustemnt
+                        params.time = document.getElementById("appiontment_time").value;
+                    }
                     fetch(document.getElementById("appointment_form").getAttribute("action"), {
                         method: 'POST',
                         headers: {
