@@ -124,5 +124,8 @@
 
 .checkbox_wrapper{
     text-align: center;
-    margin-top: 20;
+    height: 60px;
+}
+.form_submit_row{
+    text-align: right;
 }
