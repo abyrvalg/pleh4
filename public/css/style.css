@@ -49,7 +49,7 @@
     margin: 0;
     font-family: 'Circe',Arial,sans-serif;
     font-size: 100%;
-    max-width: 140px !important;
+    max-width: 159px !important;
 }
 .form_submit{
     font-family: 'Circe',Arial,sans-serif;
@@ -97,7 +97,7 @@
     font-size: 20px;
 }
 .field-top-label {
-    margin-top: -21px;
+    margin-top: -26px;
     font-size: 18px;
 }
 .pointer {
@@ -124,6 +124,8 @@
 
 .checkbox_wrapper{
     text-align: center;
-    margin-top: 20px;
     height: 60px;
+}
+.form_submit_row{
+    text-align: right;
 }
