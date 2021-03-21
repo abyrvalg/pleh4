@@ -2,15 +2,16 @@
 	<script src="/js/calendar.js"></script>
 	<link rel="stylesheet" href="/css/style.css">
 </head>
+{{@async head() /}}
 <div>
-	<div class="title">{{therapist.name}}</div>
+	<div class="title">{{it.therapist.name}}</div>
 	<div>
 		<div class="hidden">Общие настройки</div>
 		<div>
 			<div>Месяц</div>
 			<select id="head_month" name="month">
-				{{#each months}}
-					<option value="{{MY}}">{{M}}</option>
+				{{@each (it.months)=>m}}
+					<option value="{{m.MY}}">{{m.M}}</option>
 				{{/each}}
 			</select>
 		</div>
@@ -61,13 +62,13 @@
 		<div>22:00 - 23:00</div>
 		<div>23:00 - 24:00</div>
 	</div>
-	{{#each months}}
-		<div class="left month_sheet" data-val="{{MY}}">
+	{{@each (it.months)=>m}}
+		<div class="left month_sheet" data-val="{{m.MY}}">
 			<div class="month_sheet_header">
-				{{#each days}}
-					<span class="left day_colum day_of_week_{{day}}"><span class="day_colum_head pointer">{{date}}</span>
-						{{#each hours}}
-							<div class="row"> <input value="{{num}}" {{#if appointment}} title="{{appointment.name}} {{appointment.phone}}" disabled {{/if}} class="slot" name="slot_{{hour}}" type="checkbox" {{#if work}}checked{{/if}}/></div>
+				{{@each (m.days)=>d}}
+					<span class="left day_colum day_of_week_{{d.day}}"><span class="day_colum_head pointer">{{d.date}}</span>
+						{{@each (d.hours)=>h}}
+							<div class="row"> <input value="{{h.num}}" {{@if (h.appointment)}} title="{{h.appointment.name}} {{h.appointment.phone}}" disabled {{/if}} class="slot" name="slot_{{h.hour}}" type="checkbox" {{@if (h.work)}}checked{{/if}}/></div>
 						{{/each}}
 					</span>
 				{{/each}}

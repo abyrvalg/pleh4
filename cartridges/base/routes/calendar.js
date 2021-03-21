@@ -5,12 +5,14 @@ module.exports = {
 	setSchedule : (scope)=>{
 		return require(APP_ROOT+"/modules/app")("model").get("Therapist").then(Therapist=>{
 			return Therapist.get({
-				id : scope.req.query.id,
 				schedule : {
 					months : "now-"
 				},
 				getAppointments : true
-			}, scope.session).then(therapist=>{
+			}, scope.$).then(therapist=>{
+				if(!therapist){
+					return scope.res.redirect("/user/login");
+				}
 				var now = new Date(),
 					months = [],
 					monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
@@ -49,7 +51,7 @@ module.exports = {
 					now.setMonth(now.getMonth()+1);
 	
 				}
-				return scope.session.getVar("liteql").call({
+				return scope.$.call({
 					"!base_template" : ["setSchedule", {
 						therapist : {
 							name : therapist.obj.name,

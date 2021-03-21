@@ -1,11 +1,15 @@
 const STORAGE = require(APP_ROOT+'/core/storage');
-const Session = require(APP_ROOT+'/core/session')
+const Session = require(APP_ROOT+'/core/session');
 module.exports = {
 	setSchedules(query){
-		var months = {},
+		var profile = this.scope.session.getVar("currentProfile"),
+			therapistID = (profile && profile.id) || query.therapist,
 			params = [query.therapist],
 			monthsQuery = [],    //TODO: use therapist model for this
 			setVals = [];
+		if(!therapistID) {
+			return {success: false, error : "therapist_id_is_missing"}
+		}
 		for(let key in query.months){
 			let monthSchedule = 0n,
 				monthYear = key.split("|");
@@ -15,9 +19,9 @@ module.exports = {
 			setVals.push({
 				condition : {
 					month : monthYear,
-					therapist : query.therapist
+					therapist : therapistID
 				},
-				values : [query.therapist, monthYear, query.months[key]]
+				values : [therapistID, monthYear, query.months[key]]
 			});
 		}
 		return STORAGE.upsert({
@@ -27,21 +31,24 @@ module.exports = {
 			fields : ["therapist", "month"],
 			setVals : setVals,
 			params : params
-		}).then(r=>{
+		}).then(r=>{		
 			return {
 				success : true
 			}
 		})
 	},
 	getSchedules(query){
+		var profile = this.scope.session.getVar("currentProfile"),
+			therapistID = (profile && profile.id) || query.therapist,
+			$ = this.scope.$;
 		return require(APP_ROOT+"/modules/app")("model").get("Therapist").then(Therapist=>{
 			return Therapist.get({
-				id : query.therapist,
+				id : therapistID,
 				schedule : {
 					months : "now-"
 				},
 				getAppointments : !!query.substractAppointments
-			}, Session.get(this.scope['SID'])).then(therapist=>{
+			}, $).then(therapist=>{
 				if(query.substractAppointments){
 					therapist.substractAppointmentsFromSchedule();
 				}

@@ -17,8 +17,11 @@ module.exports = (path, params)=>{
 		}
 		return params ? modelFactory.get(params) : modelFactory;
 	}
-	if(path == "utils"){
+	if(path == "utils"){  //TODO: those things should be extendable by cartridges
 		return require("./../../cartridges/base/utils/"+params+"Utils");
+	}
+	if(path == "route"){
+		return require("./../../cartridges/base/routes/"+params);
 	}
 	return require('./../../'+({
 		'session' : 'core/session',

@@ -2,6 +2,7 @@ const nodemailer = require('nodemailer');
 const LOGGER  = require(APP_ROOT+'/core/logger');
 const emailUtils = {
     send(options){  
+        return Promise.resolve({success : true, mock: true});
         var transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {

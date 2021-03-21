@@ -1,0 +1,17 @@
+<div>
+    <div class="head_menu">
+        {{@each(it.dachboard)=>val}}
+        <div class="head_menu_block">
+            <div class="head_menu_block_head">{{val.topicName}}</div>
+            {{@each(val.elements)=>el}}
+                <div class="head_menu_block_item">
+                    <a href="{{el.route}}">{{el.displayName}}</a>
+                </div>
+            {{/each}}
+        </div>
+        {{/each}}        
+    </div>
+    {{@if(it.isAuthorized == true)}}
+        <div><button id="logout">{{it.msg.logout}}</button></div>
+    {{/if}}
+</div>

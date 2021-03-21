@@ -13,7 +13,7 @@ catch(e){
 global.ROOT_URL = process.env.ROOT_URL;
 var	onStart = require(APP_ROOT+"/modules/app")('hook').getHooks('onServerStart'),
 	onRequest = require(APP_ROOT+"/modules/app")('hook').getHooks('onRequest'),
-  session = require(APP_ROOT+"/modules/app")('session');
+  SESSION = require(APP_ROOT+"/modules/app")('session');
   
 const CONFIG = require(APP_ROOT+"/modules/app")('config');
 const LOGGER = require(APP_ROOT+"/modules/app")('logger');	
@@ -23,7 +23,7 @@ function start() {
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(express.json());
-	app.use(session.check);
+	app.use(SESSION.check);
 	app.use(express.static(CONFIG.staticFolder));
 
 	app.use(function(req, res, next) {
@@ -60,30 +60,33 @@ function start() {
 		return ()=>{LOGGER.debug("resource:"+key+" is not found"); return null;}
 	});
 
-	app.all(/\w*\/data/, cors(), function(req, resp){
+	app.all(/\w*\/data/, cors(), function(req, res){
 		try{
-			var $ = session.getVal(req, 'liteql'),			
-				query = req.query.query ? JSON.parse(req.query.query) : req.body,
-				promise,
-				locale = req.url.match(/^\/(\w{2})\//);
-			locale = locale && locale[1];
-			locale = locale || CONFIG.defaultLocale;
-			if(!$) {
-				$ = session.setVal(req, 'liteql', new LiteQL());
-			}
-			if(locale) {
-				promise = $.call({'@set' : ['locale', locale]});
-			}
-			promise = $.call({'@set' : ['SID', session.getSID(req)]}).then(()=>$.call(query));			
-			promise.then((result)=>{
-				resp.send(result)
-			}).catch((e)=>{
-				LOGGER.error(e);
-			});
+			SESSION.get(req).catch(err=>{
+				LOGGER.error("Session error");
+				LOGGER.error(err);
+				res.send({});
+			}).then(session=>{
+				var	$ = new LiteQL(),			
+					query = req.query.query ? JSON.parse(req.query.query) : req.body;
+					locale = req.url.match(/^\/(\w{2})\//);
+				locale = locale && locale[1];
+				locale = locale || CONFIG.defaultLocale;
+				$.scope.session = session;
+				$.scope.req = req;
+				$.scope.res = res;
+				$.scope.locale = locale;
+				$.scope.$ = $;	
+				$.call(query).then((result)=>{
+					session.updatePresistance().then(()=>res.send(result));
+				}).catch((e)=>{
+					LOGGER.error(e);
+				});
+			});	
 		}
 		catch(e){
 			LOGGER.debug(e);
-			resp.send({});
+			res.send({});
 		}
 	});
 
@@ -92,10 +95,23 @@ function start() {
 	});
 
 	app.get('*', function(req, res){
-			var $ = session.getVal(req, 'liteql') || session.setVal(req, 'liteql', new LiteQL()),
+		SESSION.get(req).catch(err=>{
+			LOGGER.error("Session error");
+			LOGGER.error(err);
+			res.send('404');
+		}).then(session=>{
+			var $ = new LiteQL(),
 				path = req.path.replace(/\./g, ''),
 				match = path.match(/((?:\/\w+)+)?\/(\w+)$/),
-				resultPromise = $.call({'@set': ['SID',session.getSID(req)]}).then(r=>"404");
+				resultPromise,
+				locale = req.url.match(/^\/(\w{2})\//);
+			locale = locale && locale[1];
+			locale = locale || CONFIG.defaultLocale;
+			$.scope.session = session;
+			$.scope.req = req;
+			$.scope.res = res;
+			$.scope.locale = locale;
+			$.scope.$ = $;
 			for(let key in CONFIG.cartridgePath) {
 				try{
 					var route = require('./cartridges/'+CONFIG.cartridgePath[key]+'/routes'+(match && match[1] || '/index'))[match && match[2] || 'index'];	
@@ -105,11 +121,12 @@ function start() {
 				}
 				try{
 					if(route){
-						resultPromise = resultPromise.then(()=>route({
+						resultPromise = route({
 							"req" : req,
 							"res" : res,
-							"session" : session.get(req)
-						}));
+							"session" : session,
+							"$" : $
+						});
 						break;
 					}
 				}
@@ -119,7 +136,7 @@ function start() {
 			}
 			if(resultPromise){
 				resultPromise.then((result)=>{
-					res.send(result);
+					session.updatePresistance().then(()=>res.send(result));
 				}).catch((e)=>{
 					LOGGER.error(e);
 					res.send('404');
@@ -128,6 +145,8 @@ function start() {
 				LOGGER.error("cannot process route: "+path);
 				res.send('404');
 			}
+		});
+			
 	});
 	app.listen(process.env.PORT || 80);
 	console.log("run!");
