@@ -1,7 +1,6 @@
 const STORAGE = require(APP_ROOT+"/modules/app")('storage');
 const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
 const dataUtils = require(APP_ROOT+"/modules/app")("utils", "data");
-const Session = require(APP_ROOT+'/core/session');
 
 function getTherapist(params){
 	var queryParams = []; 
@@ -21,11 +20,12 @@ module.exports = {
 		}
 		return getTherapist(params);
 	},
-	therapist() {
-		if(!this.scope.session.ensure("auth")){
+	therapist(params) {
+		/*if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
-		}
-		return getTherapist({id:this.scope.session.getVar("currentProfile").id}).then(r=>r[0]);
+		}*/
+		var profile = this.scope.session.getVar("currentProfile");
+		return getTherapist({id:profile ? profile.id : params}).then(r=>r[0]);
 	},
 	therapistByTgID(tg_id) {
 		return getTherapist({tg_id:tg_id}).then(r=>r[0]);
@@ -78,7 +78,6 @@ module.exports = {
                     values ("+vals.join(",")+", now())",
             params : params
 		}).then(r=>{
-			console.log(r);
 			return r;
 		});
 	},
