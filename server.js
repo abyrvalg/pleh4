@@ -101,9 +101,15 @@ function start() {
 			res.send('404');
 		}).then(session=>{
 			var $ = new LiteQL(),
+				// Removes any dots from path
 				path = req.path.replace(/\./g, ''),
+				// Gets the last /{something} from path
+				// combination of '+' and '?' in this regex can be replaced with '*'
 				match = path.match(/((?:\/\w+)+)?\/(\w+)$/),
 				resultPromise,
+				// Looks for language combination consisting 
+				// of 2 letters (i.e. "ua" or "en") at the start of string
+				// Should it really look for ANY combination of 2 letters?
 				locale = req.url.match(/^\/(\w{2})\//);
 			locale = locale && locale[1];
 			locale = locale || CONFIG.defaultLocale;
