@@ -34,7 +34,7 @@ module.exports = {
                     session.setVar("email", arg.email);
                     return {success : true}
                 }).catch(err=>{
-                    LOGGER.error(err);
+                    LOGGER.error("error during cognito signUp: "+(err && err.message));
                     return {success : false}
                 });
             }
