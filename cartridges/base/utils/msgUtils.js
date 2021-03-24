@@ -1,5 +1,7 @@
 const TG = require('telegram-bot-api');
 const STORAGE = require(APP_ROOT+'/core/storage');
+const LOGGER  = require(APP_ROOT+'/core/logger');
+
 const api = new TG({
     token: process.env.telegram_token
 })
@@ -10,7 +12,7 @@ const msg = {
         return api.sendMessage(options).then(r=>{
             return r;
         }).catch(err=>{
-            console.log(err);
+            LOGGER.error(err);
         })
     },
     listen(){

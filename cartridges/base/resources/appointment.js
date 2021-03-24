@@ -22,7 +22,6 @@ module.exports = {
                 error: "invalide_date"
             }
         }
-        console.log(date);
         return require(APP_ROOT+"/modules/app")("model").get("Appointment").then(Appointment=>{
             return Appointment.submit({
                 therapistID : therapistID,
@@ -40,22 +39,11 @@ module.exports = {
                     return res;
                 }
                 return currentInstance.scope.$.call([
-                    {"storage_therapist>therapist":[therapistID]},
-                    {"base_msg>msg" : ["mail", ["\\w*"]]},
-                    {"base_template>body" : ["mails/newAppointment", {
-                        "name" : query.name, 
-                        "phone" : query.phone,
-                        "date" : date && dateUtils.dateToString(date),
-                        "time" : query.time && dateUtils.timeToString(+query.time),
-                        "howToCall" : ["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall],
-                        "appoinmentListLink" : urlUtils.getFullUrl("appointment/list")
-                    }]}
+                    {"storage_therapist>therapist":[therapistID]}
                 ]).then(mailData=>{
                     return require(APP_ROOT+"/modules/app")("utils", "email").send({
-                        to : mailData.therapist.email,
-                        body : mailData.body,
-                        subject : mailData.msg.appointmentNewSubject
-                    }).then(info=>{
+                        to : mailData.therapist.email
+                    }).then(info=>{                    
                         LOGGER.debug("Email is sent. Details: "+JSON.stringify(info));
                             return mailData.therapist.tg_id ? require(APP_ROOT+"/modules/app")("utils", "msg").send({
                                 chat_id : mailData.therapist.tg_id, 
