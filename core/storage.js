@@ -1,6 +1,7 @@
 const mocks = require('./storage.mock');
 const LOGGER = require(APP_ROOT+"/modules/app")('logger');
 const mode = "pg";
+const scheme = process.env.dbscheme;
 if(mode == "pg"){
 	const { Client } = require('pg');
 	var client = new Client({
@@ -51,7 +52,7 @@ module.exports = {
 	},
 	upsert(obj){
 		if(mode == "pg"){
-			return client.query("select "+obj.fields.join(",")+" from public."+obj.table+" where "+obj.where, obj.params).then(res=>{
+			return client.query("select "+obj.fields.join(",")+" from "+scheme+"."+obj.table+" where "+obj.where, obj.params).then(res=>{
 				let rows = res.rows,
 					insertQueryFields,
 					insertParams = [],

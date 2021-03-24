@@ -5,7 +5,7 @@ module.exports = {
         return scope.$.call([
             {"user_getDashboard>dachboard":[]},
             {"user_isAuthorized>isAuthorized":[]},
-            {"base_msg>msg>msg": ["head", ["\\w\*"]]},
+            {"base_msg>msg": ["head", ["\\w\*"]]},
             {"!base_template":["parts/head", {
                 "dachboard" : "_dachboard",
                 "isAuthorized" : "_isAuthorized",
