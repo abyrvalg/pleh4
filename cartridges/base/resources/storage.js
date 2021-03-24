@@ -1,16 +1,17 @@
 const STORAGE = require(APP_ROOT+"/modules/app")('storage');
 const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
 const dataUtils = require(APP_ROOT+"/modules/app")("utils", "data");
+const scheme = process.env.dbscheme;
 
 function getTherapist(params){
 	var queryParams = []; 
 	if(params.id){
 		queryParams.push(params.id);
-		return STORAGE.get({query : "select * from public.users where id=$1", params : queryParams});
+		return STORAGE.get({query : "select * from "+scheme+".users where id=$1", params : queryParams});
 	}
 	if(params.tg_id){
 		queryParams.push(params.tg_id);
-		return STORAGE.get({query : "select * from public.users where tg_id=$1", params : queryParams});
+		return STORAGE.get({query : "select * from "+scheme+".users where tg_id=$1", params : queryParams});
 	}
 }
 module.exports = {
@@ -32,14 +33,14 @@ module.exports = {
 	},
 	appointment(id){
 		return STORAGE.get({
-			query : "select * from public.appointments where id=$1",
+			query : "select * from "+scheme+".appointments where id=$1",
 			params : [id]
 		}).then(r=>r[0]);
 	},
 	appointmentAndSchedule(arg){
 		return STORAGE.get({
-            query : "select s.schedule, ap.id as appointment_id from public.schedules as s \
-                left join public.appointments as ap on ap.therapist=$1 and ap.date = $3 and ap.time = $4 and (ap.status > 0 or (ap.status = 0 and ap.create_date < now() + interval '6 hours'))\
+            query : "select s.schedule, ap.id as appointment_id from "+scheme+".schedules as s \
+                left join "+scheme+".appointments as ap on ap.therapist=$1 and ap.date = $3 and ap.time = $4 and (ap.status > 0 or (ap.status = 0 and ap.create_date < now() + interval '6 hours'))\
                 where s.therapist=$1 and s.month=$2", 
             params : [arg.therapistID, dateUtils.getYearMonth(new Date(arg.date)), arg.date, arg.time]
         }).then(res=>res && res[0]);
@@ -74,7 +75,7 @@ module.exports = {
 		names.push('status');
 
 		return STORAGE.get({
-			query : "insert into public.appointments ("+names.join(',')+", create_date)\
+			query : "insert into "+scheme+".appointments ("+names.join(',')+", create_date)\
                     values ("+vals.join(",")+", now())",
             params : params
 		}).then(r=>{
@@ -90,7 +91,7 @@ module.exports = {
 			return {success : false, error : "therapist_id_is_missing"}
 		}
 		return STORAGE.get({
-			query : "select * from public.appointments where therapist=$1 and (date > now() or date is null) order by date, time",
+			query : "select * from "+scheme+".appointments where therapist=$1 and (date > now() or date is null) order by date, time",
 			params : [therapistID]
 		}).then(res=>res.map(ap=>{
 			return {
@@ -129,12 +130,12 @@ module.exports = {
 			if(params.getAppointments) {
 				var appointmentsQuery = {
 					fields : "a.id as appointment_id, a.date as appointment_date, a.time as appointment_time, a.name as client_name, a.phone as client_phone",
-					join : "left join public.appointments as a on a.therapist = t.id and (a.status > 0 or (a.status = 0 and a.create_date < now() + interval '6 hours')) and ("+dateMonthQuery.join(" or ")+")"
+					join : "left join "+scheme+".appointments as a on a.therapist = t.id and (a.status > 0 or (a.status = 0 and a.create_date < now() + interval '6 hours')) and ("+dateMonthQuery.join(" or ")+")"
 				} //TODO configure interval value
 			}
 			let sqlQuery = {
-				query : "select "+(appointmentsQuery ? appointmentsQuery.fields+", " : "")+" t.id, t.first_name, t.last_name, s.month, s.schedule from public.users as t\
-				left join public.schedules as s on t.id = s.therapist and s.month in ("+months.join(",")+")\
+				query : "select "+(appointmentsQuery ? appointmentsQuery.fields+", " : "")+" t.id, t.first_name, t.last_name, s.month, s.schedule from "+scheme+".users as t\
+				left join "+scheme+".schedules as s on t.id = s.therapist and s.month in ("+months.join(",")+")\
 				"+(appointmentsQuery ? appointmentsQuery.join : "")+"\
 				where t.id = $1 order by s.month",
 				params: queryParams
@@ -199,7 +200,7 @@ module.exports = {
         });  
         if(!setFields.length) return;
         return STORAGE.get({
-            query : "update public.appointments set "+setFields.join(",")+" where id = $1 and therapist = $2",
+            query : "update "+scheme+".appointments set "+setFields.join(",")+" where id = $1 and therapist = $2",
             params : params
         }).then(r=>{
             return {status : r.updatedRows ? "ok" : "error"}
