@@ -4,7 +4,7 @@ module.exports = {
 	setSchedules(query){
 		var profile = this.scope.session.getVar("currentProfile"),
 			therapistID = (profile && profile.id) || query.therapist,
-			params = [query.therapist],
+			params = [therapistID],
 			monthsQuery = [],    //TODO: use therapist model for this
 			setVals = [];
 		if(!therapistID) {
@@ -24,6 +24,7 @@ module.exports = {
 				values : [therapistID, monthYear, query.months[key]]
 			});
 		}
+		console.log()
 		return STORAGE.upsert({
 			table : "schedules",
 			fieldsToSet : ["therapist", "month", "schedule"],
@@ -31,7 +32,8 @@ module.exports = {
 			fields : ["therapist", "month"],
 			setVals : setVals,
 			params : params
-		}).then(r=>{		
+		}).then(r=>{
+			console.log(r);	
 			return {
 				success : true
 			}

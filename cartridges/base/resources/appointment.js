@@ -11,9 +11,6 @@ module.exports = {
             profile = session.getVar("currentProfile"),
             therapistID = (profile && profile.id) || query.therapist,
             currentInstance = this;
-        if(!therapistID) {
-            return {success: false, error : "therapist_id_is_missing"}
-        }
         LOGGER.debug("submit appointment. Date:");
         LOGGER.debug(date);
         if (date && isNaN(date.getTime())){
@@ -38,24 +35,43 @@ module.exports = {
                 if(!res.success) {
                     return res;
                 }
-                return currentInstance.scope.$.call([
-                    {"storage_therapist>therapist":[therapistID]}
-                ]).then(mailData=>{
+                var toNotifyQuery = [{"storage_getUsersByRoles>coordinators" : ["coordinator"]}];
+                if(therapistID) {
+                    toNotifyQuery.push({"storage_therapist>therapist":[therapistID]});
+                }
+                return currentInstance.scope.$.call(toNotifyQuery).then(mailData=>{
                     return require(APP_ROOT+"/modules/app")("utils", "email").send({
-                        to : mailData.therapist.email
-                    }).then(info=>{                    
-                        LOGGER.debug("Email is sent. Details: "+JSON.stringify(info));
-                            return mailData.therapist.tg_id ? require(APP_ROOT+"/modules/app")("utils", "msg").send({
+                        to : mailData.therapist && mailData.therapist.email
+                    }).then(info=>{   
+                            var promise = Promise.resolve();
+                            for(let i in mailData.coordinators) {
+                                let coordinator = mailData.coordinators[i];
+                                promise = promise.then(()=>{
+                                   return require(APP_ROOT+"/modules/app")("utils", "msg").send({
+                                        chat_id : coordinator.tg_id, 
+                                        parse_mode : "MarkdownV2",
+                                        text : 'Новая заявка\\. От '+query.name+
+                                            '\\. Телефон\\: '+query.phone+'\\. Предпочитает '+
+                                            ["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall]+ 
+                                            ' как способ связи\\. [список заявок]('+urlUtils.getFullUrl("appointment/unassigned")+')'})
+                                });
+                            }                         
+                            return promise.then(()=>mailData.therapist && mailData.therapist.tg_id ? require(APP_ROOT+"/modules/app")("utils", "msg").send({
                                 chat_id : mailData.therapist.tg_id, 
                                 parse_mode : "MarkdownV2",
                                 text : 'Новая заявка\\. От '+query.name+'\\. Телефон\\: '+query.phone+'\\. Предпочитает '+["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall]+ 
                                 ' как способ связи\\. [список заявок]('+urlUtils.getFullUrl("appointment/list")+')' 
                             }).then(r=>{
                                 return {success : true}
-                            }) : {success : true};
+                            }) : {success : true})
                     });
                 });  
             });
+        });
+    },
+    assign(query){
+        return this.scope.$.call({"storage_assignAppointemnts": [query]}).then({
+
         });
     }
 }
