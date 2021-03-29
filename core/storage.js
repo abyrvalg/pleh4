@@ -51,9 +51,13 @@ module.exports = {
 		}
 	},
 	upsert(obj){
+		var instance = this;
 		if(mode == "pg"){
-			return client.query("select "+obj.fields.join(",")+" from "+scheme+"."+obj.table+" where "+obj.where, obj.params).then(res=>{
-				let rows = res.rows,
+			return instance.get({
+				query : "select "+obj.fields.join(",")+" from "+scheme+"."+obj.table+" where "+obj.where, 
+				params : obj.params
+			}).then(res=>{
+				let rows = res,
 					insertQueryFields,
 					insertParams = [],
 					updateParams = [],
@@ -80,7 +84,7 @@ module.exports = {
 							updateParams.push(setVal.values[key])
 							updateQuery.push(obj.fieldsToSet[key] +"=$"+updateParams.length);
 						}
-						updateQuery = "update public."+obj.table+" set "+updateQuery.join(",")+" where "+where.join(" and ")
+						updateQuery = "update "+scheme+"."+obj.table+" set "+updateQuery.join(",")+" where "+where.join(" and ")
 					}
 					else {
 						insertQueryFields = insertQueryFields || [];
@@ -92,7 +96,9 @@ module.exports = {
 					}
 
 				});
-				return (!updateQuery ? Promise.resolve() : client.query(updateQuery, updateParams)).then(res=>{
+				return (!updateQuery ? Promise.resolve() : instance.get({query:updateQuery, 
+					params : updateParams
+				})).then(res=>{
 					if(!insertQueryFields) {
 						return res;
 					}
@@ -100,7 +106,10 @@ module.exports = {
 					insertQueryFields.forEach(fields=>{
 						subqueries.push("("+fields.join(",")+")");
 					});
-					return client.query("insert into public."+obj.table+"  ("+obj.fieldsToSet.join(",")+") values "+subqueries, insertParams);
+					return instance.get({
+						query : "insert into "+scheme+"."+obj.table+"  ("+obj.fieldsToSet.join(",")+") values "+subqueries, 
+						params: insertParams
+					});
 				});
 
 			}).catch(err=>{

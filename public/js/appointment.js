@@ -41,6 +41,31 @@ window.onload = function(){
                 picker.setDate();
             }
         }
+        else if(e.target.classList.contains("save_assignment")){
+            var $assignTo = e.currentTarget.querySelectorAll(".assignTo");
+            if(!$assignTo.length){
+                alert("No therapist selected");
+                return;
+            };
+            var query = {"appointment_assign":[{}]};
+            
+            $assignTo.forEach(el=>{
+                if(el.value){
+                    query.appointment_assign[0][el.dataset.appid] = el.value;
+                }
+            });
+            fetch("/ua/data", {
+                method : 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body:JSON.stringify(query)
+            }).then(resp=>{
+                resp.json && resp.json().then(json=>{
+
+                });
+            });
+        }
     });    
     const picker = datepicker("#calendar_inp", {        
         startDay : 1,

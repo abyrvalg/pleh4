@@ -19,8 +19,7 @@ window.onload = function(){
         var therapistParam = location.search.match(/therapist\=(\w+)/);
         let monthSheets = document.querySelectorAll(".month_sheet[data-val='"+document.querySelectorAll("#head_month")[0].value+"']"),
             query = {"therapists_setSchedules":{
-                months : {},
-                therapist : therapistParam && therapistParam[1]
+                months : {}
             }};
         monthSheets.forEach(monthSheet=>{
             let checked = monthSheet.querySelectorAll(".slot:checked"),
