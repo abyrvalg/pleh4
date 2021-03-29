@@ -24,7 +24,6 @@ module.exports = {
 				values : [therapistID, monthYear, query.months[key]]
 			});
 		}
-		console.log()
 		return STORAGE.upsert({
 			table : "schedules",
 			fieldsToSet : ["therapist", "month", "schedule"],
@@ -33,7 +32,6 @@ module.exports = {
 			setVals : setVals,
 			params : params
 		}).then(r=>{
-			console.log(r);	
 			return {
 				success : true
 			}
