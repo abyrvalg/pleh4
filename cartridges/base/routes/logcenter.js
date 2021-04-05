@@ -1,6 +1,6 @@
 module.exports = {
     // Note: Don't use '_' in names of LiteQL variables
-    // If you have debug logs use debugLog, not debug_logs
+    // If you have debug logs use debugLogs, not debug_logs
     // LiteQL interprets '_' as a part of object (method or parameter)
 
 

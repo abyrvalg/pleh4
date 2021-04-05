@@ -15,24 +15,24 @@ indexFiles();
 chokidar
   .watch(LOGPATH)
   .on("add", (path, eventName) => {
-    let fileName = path.match(/(?:.+\\)(.+)$/)[1];
-    if (!fileName.match(/^(\w+)-(\d+)_(\d+)_(\d+)(?:\.\w{3})$/)) return;
+    let filename = path.match(/(?:.+\\)(.+)$/)[1];
+    if (!filename.match(/^(\w+)-(\d+)_(\d+)_(\d+)(?:\.\w{3})$/)) return;
     // ----- DEBUG -----
     LOGGER.debug(
-      "Chokidar's add event fired!" + "\n#####\n" + "fileName: " + fileName
+      "Chokidar's add event fired! Added file with filename: " + filename
     );
     // ----- DEBUG -----
     if (
       cachedFileIndexes.length == 0 ||
       !cachedFileIndexes.find((element, index, arr) => {
-        return element.path == fileName;
+        return element.path == filename;
       })
     ) {
       // ----- DEBUG -----
-      LOGGER.debug("Filename '" + fileName + "' is not indexed yet!");
+      LOGGER.debug("Filename '" + filename + "' is not indexed yet!");
       // ----- DEBUG -----
       cachedFileIndexes.push({
-        path: fileName,
+        path: filename,
         index:
           cachedFileIndexes.length == 0
             ? 0
@@ -41,14 +41,14 @@ chokidar
     }
     // ----- DEBUG -----
     else {
-      LOGGER.debug("Filename '" + fileName + "' is already indexed!");
+      LOGGER.debug("Filename '" + filename + "' is already indexed!");
     }
     // ----- DEBUG -----
   })
   .on("unlink", (path) => {
     // ----- DEBUG -----
     LOGGER.debug(
-      "Chokidar's unlink event fired!" + "\n#####\n" + "path:" + path
+      "Chokidar's unlink event fired! Removed file with next filename: " + path
     );
     // ----- DEBUG -----
     if (cachedFileIndexes.length > 0) {
@@ -70,74 +70,80 @@ function readLogs(type, index) {
     let fileIndex = cachedFileIndexes.find((value, i, arr) => {
       return index == value.index;
     });
-    // Check if file entry is invalid (file wasn't indexed)
-    if (!fileIndex) {
-      LOGGER.warn(
-        "Attempt to access not indexed file with index '" + index + "'"
-      );
-      return null;
-    }
     // Creation of base return object
     var ret = {
-      filename: fileIndex.path,
+      filename: "",
       lines: [],
     };
-    // ----- DEBUG -----
-    LOGGER.debug(
-      "Trying to start reading file: " + PATH.resolve(LOGPATH, fileIndex.path)
-    );
-    // ----- DEBUG -----
-    
 
-    return new Promise((resolve, reject)=>{
-		const fileStream = FS.createReadStream(
-			PATH.resolve(LOGPATH, fileIndex.path)
-		  );
-		  fileStream.on("error", (err)=>{
-			reject(err);
-		  });
-		  const rl = readline.createInterface({
-			input: fileStream,
-			crlfDelay: Infinity,
-		  });
-		  let cache;
-		  rl.on('line', (line) => {
-			if (cache) {
-			  let match = line.match(
-				/^(?:(?:\w{3}\s){2}(?:\d+\s){2}((?:\d+:?){3})\s(\w+\+\w+))/
-			  );
-			  if (match) {
-				ret.lines.push(cache);
-				cache = line;
-			  } else {
-				cache += "\n" + line;
-			  }
-			} else cache = line;
-		  });
-		  rl.on('close', (input) => {
-			  resolve(ret);
-		  });
-	});
-  } else {
-	// TODO: This thing is too easy... WHY DON'T I CONVERT IT INTO PROMISE????
-	// (but i actually think that converting it to promise will make the code more consistant)
-    var ret = [];
-    cachedFileIndexes.forEach((fileIndex, i, arr) => {
-      let fileName = fileIndex.path;
-      let index = fileIndex.index;
-      fileName = fileName.match(/^(\w+)-(\d+).(\d+).(\d+)(?:\.\w{3})$/);
-      if (type == fileName[1]) {
-        let day = fileName[2];
-        let month = fileName[3];
-        let year = fileName[4];
-        ret.push({
-          fileName: fileName[0],
-          index: index,
-          date: day + "-" + month + "-" + year,
-        });
+    return new Promise((resolve, reject) => {
+      // Check if file entry is invalid (i.e. file wasn't indexed)
+      LOGGER.debug(
+        "fileIndex: " + JSON.stringify(fileIndex) + "; index: " + index
+      );
+      if (!fileIndex) {
+        reject("Attempt to access not indexed file with index '" + index + "'");
+        return;
       }
+      ret.filename = fileIndex.path;
+      // ----- DEBUG -----
+      LOGGER.debug(
+        "Trying to start reading file: " + PATH.resolve(LOGPATH, fileIndex.path)
+      );
+      // ----- DEBUG -----
+      const fileStream = FS.createReadStream(
+        PATH.resolve(LOGPATH, fileIndex.path)
+      );
+      fileStream.on("error", (err) => {
+        reject(err);
+      });
+      const rl = readline.createInterface({
+        input: fileStream,
+        crlfDelay: Infinity,
+      });
+      let cache;
+      rl.on("line", (line) => {
+        if (cache) {
+          let match = line.match(
+            /^(?:(?:\w{3}\s){2}(?:\d+\s){2}((?:\d+:?){3})\s(\w+\+\w+))/
+          );
+          if (match) {
+            ret.lines.push(cache);
+            cache = line;
+          } else {
+            cache += "\n" + line;
+          }
+        } else cache = line;
+      });
+      rl.on("close", (input) => {
+        resolve(ret);
+      });
     });
-    return ret;
+  } else {
+    return new Promise((resolve, reject) => {
+      var ret = [];
+      cachedFileIndexes.forEach((fileIndex, i, arr) => {
+        try {
+          let filename = fileIndex.path;
+          let index = fileIndex.index;
+          filename = filename.match(/^(\w+)-(\d+).(\d+).(\d+)(?:\.\w{3})$/);
+          if (type == filename[1]) {
+            let day = filename[2];
+            let month = filename[3];
+            let year = filename[4];
+            ret.push({
+              filename: filename[0],
+              index: index,
+              date: day + "/" + month + "/" + year,
+            });
+          }
+        } catch (e) {
+          reject(e);
+          return;
+        }
+      });
+      resolve(ret);
+    });
   }
 }
 
@@ -158,7 +164,7 @@ function indexFiles() {
 }
 
 module.exports = {
-  // Returns object with name of current file and array
+  // Returns promise which returns object with name of current file and array
   // of objects where each object represent a row
   // Structure of return array:
   //  {
@@ -186,7 +192,8 @@ module.exports = {
     return readLogs("fatal", index);
   },
   // ------------
-  // Returns array of object where each object represents a log file
+  // Returns promise which returns array of objects
+  // where each object represents a log file
   // Structure of return array:
   //  [
   //      {
