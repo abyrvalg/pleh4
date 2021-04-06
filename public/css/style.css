@@ -125,3 +125,69 @@
     text-align: center;
     margin-top: 20;
 }
+
+/* Форма регистрации */
+.registration-form-container, .login-form-container {
+    font-family: "Open Sans";
+    margin: 0 auto;
+    border-radius: 15px;
+    padding: 20px 30px;
+
+    background: #4784E6;
+    background: -moz-linear-gradient(39deg, #4784E6 0%, #363585 100%);
+    background: -webkit-gradient(linear, left bottom, right top, color-stop(0%, #4784E6), color-stop(100%, #363585));
+    background: -webkit-linear-gradient(39deg, #4784E6 0%, #363585 100%);
+    background: -o-linear-gradient(39deg, #4784E6 0%, #363585 100%);
+    background: -ms-linear-gradient(39deg, #4784E6 0%, #363585 100%);
+    background: linear-gradient(39deg, #4784E6 0%, #363585 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#4784E6", endColorstr="#363585", GradientType=1);
+
+    width: 25%;
+    text-align: center;
+
+    -webkit-box-shadow: 0px 12px 13px -6px #000;
+    -moz-box-shadow: 0px 12px 13px -6px #000;
+    box-shadow: 0px 12px 13px -6px #000;
+}
+
+.title {
+    color: #ffffff;
+    float: left;
+    font-size: 22px;
+    margin: 0 0 5px 5px;
+}
+
+.input-field {
+    width: 100%;
+    border-radius: 10px;
+    outline: none;
+    border: none;
+    height: 22px;
+    opacity: .6;
+    margin-bottom: 5px;
+}
+
+input::-moz-placeholder {color: #000;}
+input::-webkit-input-placeholder {color: #000;}
+input:-ms-input-placeholder {color: #000;}
+input::-ms-input-placeholder {color: #000;}
+input::placeholder {color: #000;} 
+
+.input-field:focus {
+    -webkit-box-shadow: 0px 0px 3px 2px aqua;
+    -moz-box-shadow: 0px 0px 3px 2px aqua;
+    box-shadow: 0px 0px 3px 2px aqua;
+}
+
+.register_submit {
+    width: 60%;
+    padding: 5px;
+    background-color: aqua;
+    border-radius: 5px;
+    border: none;
+    outline: none;
+}
+
+.register_submit:hover {
+    cursor: pointer;
+}
