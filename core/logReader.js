@@ -120,30 +120,23 @@ function readLogs(type, index) {
       });
     });
   } else {
-    return new Promise((resolve, reject) => {
-      var ret = [];
-      cachedFileIndexes.forEach((fileIndex, i, arr) => {
-        try {
-          let filename = fileIndex.path;
-          let index = fileIndex.index;
-          filename = filename.match(/^(\w+)-(\d+).(\d+).(\d+)(?:\.\w{3})$/);
-          if (type == filename[1]) {
-            let day = filename[2];
-            let month = filename[3];
-            let year = filename[4];
-            ret.push({
-              filename: filename[0],
-              index: index,
-              date: day + "/" + month + "/" + year,
-            });
-          }
-        } catch (e) {
-          reject(e);
-          return;
-        }
-      });
-      resolve(ret);
+    var ret = [];
+    cachedFileIndexes.forEach((fileIndex, i, arr) => {
+      let filename = fileIndex.path;
+      let index = fileIndex.index;
+      filename = filename.match(/^(\w+)-(\d+).(\d+).(\d+)(?:\.\w{3})$/);
+      if (type == filename[1]) {
+        let day = filename[2];
+        let month = filename[3];
+        let year = filename[4];
+        ret.push({
+          filename: filename[0],
+          index: index,
+          date: day + "/" + month + "/" + year,
+        });
+      }
     });
+    return ret;
   }
 }
 
@@ -197,8 +190,8 @@ module.exports = {
   // Structure of return array:
   //  [
   //      {
-  //		  filename,
-  //          index(number),
+  //		      filename,
+  //          index,
   //          date
   //      },
   //      ...

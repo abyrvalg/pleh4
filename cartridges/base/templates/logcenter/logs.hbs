@@ -19,13 +19,18 @@
         <thead>
           <tr>
             <th scope="col">№</th>
+            <th scope="col">Название</th>
             <th scope="col">Дата</th>
-            <th scope="col">Время</th>
-            <th scope="col">Текст</th>
           </tr>
         </thead>
         <tbody id="table">
-
+          {{@each(it)=>elem}}
+          <tr>
+            <td>{{elem.index}}</td>
+            <td>{{elem.filename}}</td>
+            <td>{{elem.date}}</td>
+          </tr>
+          {{/each}}
         </tbody>
       </table>
     </div>

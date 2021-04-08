@@ -16,25 +16,25 @@ module.exports = {
     debug : (scope)=>{
         return scope.$.call([
             {"logs_debugList>debugLogs":[]},
-            {"!base_template":["logcenter/files", "_debugLogs"]}
+            {"!base_template":["logcenter/logs", "_debugLogs"]}
         ]);
     },
     warn : (scope)=>{
         return scope.$.call([
             {"logs_warnList>warnLogs":[]},
-            {"!base_template":["logcenter/files", "_warnLogs"]}
+            {"!base_template":["logcenter/logs", "_warnLogs"]}
         ]);
     },
     error : (scope)=>{
         return scope.$.call([
             {"logs_errorList>errorLogs":[]},
-            {"!base_template":["logcenter/files", "_errorLogs"]}
+            {"!base_template":["logcenter/logs", "_errorLogs"]}
         ]);
     },
     fatal : (scope)=>{
         return scope.$.call([
             {"logs_fatalList>fatalLogs":[]},
-            {"!base_template":["logcenter/files", "_fatalLogs"]}
+            {"!base_template":["logcenter/logs", "_fatalLogs"]}
         ]);
     },
 }
