@@ -105,7 +105,7 @@ function start() {
 				path = req.path.replace(/\./g, ''),
 				// Splits the path in 2 parts:
 				// 1: part before the last '/' symbol - any combination of '/', letters and/or numbers;
-				// 2: last part of path without '/'. Only text symbols after it.
+				// 2: last part of path without '/'. Only text and numerical symbols after it.
 				match = path.match(/((?:\/\w+)+)?\/(\w+)$/),
 				resultPromise,
 				// Looks for language combination consisting 

@@ -18,15 +18,20 @@
       <table class="table table-hover">
         <thead>
           <tr>
+            <h2>
+              {{it.categoryCap}}
+            </h2>
+          </tr>
+          <tr>
             <th scope="col">№</th>
             <th scope="col">Название</th>
             <th scope="col">Дата</th>
           </tr>
         </thead>
         <tbody id="table">
-          {{@each(it)=>elem}}
-          <tr>
-            <td>{{elem.index}}</td>
+          {{@each(it.files)=>elem}}
+          <tr class='clickable-row' data-href='{{it.category}}/{{elem.index}}'>
+            <th scope="row">{{elem.index}}</th>
             <td>{{elem.filename}}</td>
             <td>{{elem.date}}</td>
           </tr>
@@ -61,7 +66,12 @@
 <script
   src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/js/bootstrap-datetimepicker.min.js"></script>
 <script>
-  $(function () {
-    $('#datetimepicker1').datetimepicker();
+  jQuery(document).ready(function ($) {
+    $(function () {
+      $('#datetimepicker1').datetimepicker();
+    });
+    $(".clickable-row").click(function() {
+        window.location = $(this).data("href");
+    });
   });
 </script>

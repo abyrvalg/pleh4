@@ -13,7 +13,7 @@ indexFiles();
 // Chokidar fires "add" events on all files when watching is getting started
 // -----------------------------
 chokidar
-  .watch(LOGPATH)
+  .watch(LOGPATH, {ignoreInitial: true})
   .on("add", (path, eventName) => {
     let filename = path.match(/(?:.+\\)(.+)$/)[1];
     if (!filename.match(/^(\w+)-(\d+)_(\d+)_(\d+)(?:\.\w{3})$/)) return;
@@ -75,52 +75,50 @@ function readLogs(type, index) {
       filename: "",
       lines: [],
     };
-
-    return new Promise((resolve, reject) => {
-      // Check if file entry is invalid (i.e. file wasn't indexed)
-      LOGGER.debug(
-        "fileIndex: " + JSON.stringify(fileIndex) + "; index: " + index
-      );
-      if (!fileIndex) {
-        reject("Attempt to access not indexed file with index '" + index + "'");
-        return;
-      }
-      ret.filename = fileIndex.path;
-      // ----- DEBUG -----
-      LOGGER.debug(
-        "Trying to start reading file: " + PATH.resolve(LOGPATH, fileIndex.path)
-      );
-      // ----- DEBUG -----
-      const fileStream = FS.createReadStream(
-        PATH.resolve(LOGPATH, fileIndex.path)
-      );
-      fileStream.on("error", (err) => {
-        reject(err);
-      });
-      const rl = readline.createInterface({
-        input: fileStream,
-        crlfDelay: Infinity,
-      });
-      let cache;
-      rl.on("line", (line) => {
-        if (cache) {
-          let match = line.match(
-            /^(?:(?:\w{3}\s){2}(?:\d+\s){2}((?:\d+:?){3})\s(\w+\+\w+))/
-          );
-          if (match) {
-            ret.lines.push(cache);
-            cache = line;
-          } else {
-            cache += "\n" + line;
-          }
-        } else cache = line;
-      });
-      rl.on("close", (input) => {
-        resolve(ret);
-      });
+    // Check if file entry is invalid (i.e. file wasn't indexed)
+    LOGGER.debug(
+      "fileIndex: " + JSON.stringify(fileIndex) + "; index: " + index
+    );
+    if (!fileIndex) {
+      LOGGER.warn("Attempt to access not indexed file with index '" + index + "'");
+      return;
+    }
+    ret.filename = fileIndex.path;
+    // ----- DEBUG -----
+    LOGGER.debug(
+      "Trying to read file: " + PATH.resolve(LOGPATH, fileIndex.path)
+    );
+    // ----- DEBUG -----
+    var data;
+    try {
+      data = FS.readFileSync(PATH.resolve(LOGPATH, fileIndex.path), "utf-8");
+    } catch (err) {
+      LOGGER.error(err);
+    }
+    const lines = data.split(/\r?\n/);
+    let cache;
+    lines.forEach((line, index, arr)=>{
+      if (cache) {
+        let match = line.match(
+          /^(?:(?:\w{3}\s){2}(?:\d+\s){2}((?:\d+:?){3})\s(\w+\+\w+))/
+        );
+        if (match) {
+          ret.lines.push(cache);
+          cache = line;
+        } else {
+          cache += "\n" + line;
+        }
+      } else cache = line;
     });
+    return ret;
   } else {
-    var ret = [];
+    var ret = {
+      category: "",
+      categoryCap: "",
+      files: []
+    };
+    ret.categoryCap = type.toUpperCase();
+    ret.category = type;
     cachedFileIndexes.forEach((fileIndex, i, arr) => {
       let filename = fileIndex.path;
       let index = fileIndex.index;
@@ -129,7 +127,7 @@ function readLogs(type, index) {
         let day = filename[2];
         let month = filename[3];
         let year = filename[4];
-        ret.push({
+        ret.files.push({
           filename: filename[0],
           index: index,
           date: day + "/" + month + "/" + year,
@@ -157,7 +155,7 @@ function indexFiles() {
 }
 
 module.exports = {
-  // Returns promise which returns object with name of current file and array
+  // Returns object with name of current file and array
   // of objects where each object represent a row
   // Structure of return array:
   //  {
@@ -185,17 +183,20 @@ module.exports = {
     return readLogs("fatal", index);
   },
   // ------------
-  // Returns promise which returns array of objects
-  // where each object represents a log file
+  // Returns object with name of category and 
+  // an array of objects where each object represents a log file
   // Structure of return array:
-  //  [
-  //      {
-  //		      filename,
-  //          index,
-  //          date
-  //      },
-  //      ...
-  //  ]
+  //  {
+  //    category,
+  //    files: [
+  //        {
+  //	  	      filename,
+  //            index,
+  //            date
+  //        },
+  //        ...
+  //    ]
+  //  }
   // ------------
   errorAll() {
     return readLogs("error", null);
