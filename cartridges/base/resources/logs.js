@@ -1,23 +1,13 @@
 module.exports = {
-  debugList(query) {
-    if (!query) {
-      return require(APP_ROOT + "/modules/app")("logReader").debugAll();
+  list(type){
+    if(!type){
+      return require(APP_ROOT + "/modules/app")("logReader").logsAll("all");
     }
+    return require(APP_ROOT + "/modules/app")("logReader").logsAll(type);
   },
-  errorList(query) {
-    if (!query) {
-      return require(APP_ROOT + "/modules/app")("logReader").errorAll();
+  file(filename){
+    if(filename){
+      return require(APP_ROOT + "/modules/app")("logReader").log(filename);
     }
-  },
-  warnList(query) {
-    if (!query) {
-      return require(APP_ROOT + "/modules/app")("logReader").warnAll();
-    }
-  },
-  fatalList(query) {
-    if (!query) {
-      return require(APP_ROOT + "/modules/app")("logReader").fatalAll();
-    }
-  },
-  // TODO: add returns for all possible requests
+  }
 };

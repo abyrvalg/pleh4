@@ -122,8 +122,8 @@ function start() {
 			for(let key in CONFIG.cartridgePath) {
 				try{
 					var route = require('./cartridges/'+CONFIG.cartridgePath[key]+'/routes'+(match && match[1] || '/index'))[match && match[2] || 'index'];	
-					LOGGER.debug("Path to route: " + ('./cartridges/'+CONFIG.cartridgePath[key]+'/routes'+(match && match[2] || '/index')));
-					LOGGER.debug("AND trying to access " + (match && match[1] || 'index') + " from file above");
+					// LOGGER.debug("Path to route: " + ('./cartridges/'+CONFIG.cartridgePath[key]+'/routes'+(match && match[2] || '/index')));
+					// LOGGER.debug("AND trying to access " + (match && match[1] || 'index') + " from file above");
 				}catch(e){
 					LOGGER.debug(e);
 					continue;

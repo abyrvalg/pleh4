@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="../css/logcenter/dist/styles.css">
   <title>Log center</title>
 </head>
-{{ @async logCenterHead() /}}
+{{! /* {{ @async logCenterHead() /}} */ }} 
 
 
 <section class="content">
@@ -19,21 +19,23 @@
         <thead>
           <tr>
             <h2>
-              {{it.categoryCap}}
+              {{it.filename}}
             </h2>
           </tr>
           <tr>
             <th scope="col">№</th>
-            <th scope="col">Название</th>
-            <th scope="col">Дата</th>
+            <th scope="col">Время</th>
+            <th scope="col">Часовой пояс</th>
+            <th scope="col">Текст</th>
           </tr>
         </thead>
         <tbody id="table">
-          {{@each(it.files)=>elem}}
-          <tr class='clickable-row' data-href='/logcenter/logs?file={{elem.filename}}'>
-            <th scope="row">{{elem.index}}</th>
-            <td>{{elem.filename}}</td>
-            <td>{{elem.date}}</td>
+          {{@each(it.lines)=>elem}}
+          <tr>
+            <th scope="row"></th>
+            <td>{{elem.time}}</td>
+            <td>{{elem.timezone}}</td>
+            <td>{{elem.text}}</td>
           </tr>
           {{/each}}
         </tbody>
