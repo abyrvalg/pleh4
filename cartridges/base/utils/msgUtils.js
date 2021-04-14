@@ -1,5 +1,8 @@
 const TG = require('telegram-bot-api');
 const STORAGE = require(APP_ROOT+'/core/storage');
+const LOGGER  = require(APP_ROOT+'/core/logger');
+const scheme = process.env.dbscheme;
+
 const api = new TG({
     token: process.env.telegram_token
 })
@@ -10,7 +13,9 @@ const msg = {
         return api.sendMessage(options).then(r=>{
             return r;
         }).catch(err=>{
-            console.log(err);
+            LOGGER.error("Error while Telegram message sending");
+            LOGGER.error(JSON.stringify(err));
+            return err;
         })
     },
     listen(){
@@ -18,12 +23,15 @@ const msg = {
             .then(() => {
                 console.log('API is started')
             })
-            .catch(console.err)
+            .catch(err=>{
+                LOGGER.error("Error while starting tg bot");
+                LOGGER.error(JSON.stringify(err));
+            })
 
         api.on('update', update => {
             if(update.message && update.message.from){
                 STORAGE.get({
-                    query: "select id, first_name from public.users where tg_id=$1", 
+                    query: "select id, first_name from "+scheme+".users where tg_id=$1", 
                     params :  [""+update.message.from.id]
             }).then(therapist=>{
                     if(!therapist || therapist.length == 0) {
@@ -37,7 +45,7 @@ const msg = {
                         }
                         else {
                             STORAGE.get({
-                                query : "update public.users set tg_id = $1 where id = $2",
+                                query : "update "+scheme+".users set tg_id = $1 where id = $2",
                                 params : [""+update.message.from.id, update.message.text],
                             }).then(r=>{
                                 if(r.updatedRows == 1) {

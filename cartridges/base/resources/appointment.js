@@ -1,73 +1,93 @@
+const { profile } = require("winston");
+
 const STORAGE = require(APP_ROOT+'/core/storage');
 const LOGGER  = require(APP_ROOT+'/core/logger');
 const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
 const dataUtils = require(APP_ROOT+"/modules/app")("utils", "data");
 const urlUtils = require(APP_ROOT+"/modules/app")("utils", "url");
 
-module.exports = {
-	submit(query){
-        var date = query.date && new Date(query.date),
-            session = this.scope.session;
-            profile = session.getVar("currentProfile"),
-            therapistID = (profile && profile.id) || query.therapist,
-            currentInstance = this;
-        if(!therapistID) {
-            return {success: false, error : "therapist_id_is_missing"}
+function addAppointment(query, currentInstance){
+    if (query.date && isNaN(query.date.getTime())){
+        return {
+            success: false,
+            error: "invalide_date"
         }
-        LOGGER.debug("submit appointment. Date:");
-        LOGGER.debug(date);
-        if (date && isNaN(date.getTime())){
-            return {
-                success: false,
-                error: "invalide_date"
+    }
+    return require(APP_ROOT+"/modules/app")("model").get("Appointment").then(Appointment=>{
+        return Appointment.submit({
+            therapistID : query.therapist,
+            date : query.date,
+            time : query.time,
+            name : query.name,
+            phone : query.phone,
+            howToCall : query.howToCall,
+            byTherapist : query.byTherapist
+        }, currentInstance.scope.$).then(res=>{
+            if(!res) {
+                return {success:false, error: "internal"}
             }
-        }
-        console.log(date);
-        return require(APP_ROOT+"/modules/app")("model").get("Appointment").then(Appointment=>{
-            return Appointment.submit({
-                therapistID : therapistID,
-                date : date,
-                time : query.time,
-                name : query.name,
-                phone : query.phone,
-                howToCall : query.howToCall,
-                byTherapist : query.byTherapist
-            }, currentInstance.scope.$).then(res=>{
-                if(!res) {
-                    return {success:false, error: "internal"}
-                }
-                if(!res.success) {
-                    return res;
-                }
-                return currentInstance.scope.$.call([
-                    {"storage_therapist>therapist":[therapistID]},
-                    {"base_msg>msg" : ["mail", ["\\w*"]]},
-                    {"base_template>body" : ["mails/newAppointment", {
-                        "name" : query.name, 
-                        "phone" : query.phone,
-                        "date" : date && dateUtils.dateToString(date),
-                        "time" : query.time && dateUtils.timeToString(+query.time),
-                        "howToCall" : ["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall],
-                        "appoinmentListLink" : urlUtils.getFullUrl("appointment/list")
-                    }]}
-                ]).then(mailData=>{
-                    return require(APP_ROOT+"/modules/app")("utils", "email").send({
-                        to : mailData.therapist.email,
-                        body : mailData.body,
-                        subject : mailData.msg.appointmentNewSubject
-                    }).then(info=>{
-                        LOGGER.debug("Email is sent. Details: "+JSON.stringify(info));
-                            return mailData.therapist.tg_id ? require(APP_ROOT+"/modules/app")("utils", "msg").send({
-                                chat_id : mailData.therapist.tg_id, 
-                                parse_mode : "MarkdownV2",
-                                text : 'Новая заявка\\. От '+query.name+'\\. Телефон\\: '+query.phone+'\\. Предпочитает '+["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall]+ 
-                                ' как способ связи\\. [список заявок]('+urlUtils.getFullUrl("appointment/list")+')' 
-                            }).then(r=>{
-                                return {success : true}
-                            }) : {success : true};
-                    });
-                });  
-            });
+            if(!res.success) {
+                return res;
+            }
+            var toNotifyQuery = [{"storage_getUsersByRoles>coordinators" : ["coordinator"]}];
+            if(query.therapist) {
+                toNotifyQuery.push({"storage_therapist>therapist":[query.therapist]});
+            }
+            return currentInstance.scope.$.call(toNotifyQuery).then(mailData=>{
+                return require(APP_ROOT+"/modules/app")("utils", "email").send({
+                    to : mailData.therapist && mailData.therapist.email
+                }).then(info=>{   
+                        var promise = Promise.resolve();
+                        for(let i in mailData.coordinators) {
+                            let coordinator = mailData.coordinators[i];
+                            promise = promise.then(()=>{
+                               return require(APP_ROOT+"/modules/app")("utils", "msg").send({
+                                    chat_id : coordinator.tg_id, 
+                                    parse_mode : "MarkdownV2",
+                                    text : 'Новая заявка\\. От '+query.name+
+                                        '\\. Телефон\\: '+query.phone+'\\. Предпочитает '+
+                                        ["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall]+ 
+                                        ' как способ связи\\. [список заявок]('+urlUtils.getFullUrl("appointment/unassigned")+')'})
+                            });
+                        }                         
+                        return promise.then(()=>mailData.therapist && mailData.therapist.tg_id ? require(APP_ROOT+"/modules/app")("utils", "msg").send({
+                            chat_id : mailData.therapist.tg_id, 
+                            parse_mode : "MarkdownV2",
+                            text : 'Новая заявка\\. От '+query.name+'\\. Телефон\\: '+query.phone+'\\. Предпочитает '+["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall]+ 
+                            ' как способ связи\\. [список заявок]('+urlUtils.getFullUrl("appointment/list")+')' 
+                        }).then(r=>{
+                            return {success : true}
+                        }) : {success : true})
+                });
+            });  
         });
+    });
+}
+
+module.exports = {
+    add(query){
+        var session = this.scope.session,
+            profile = session.getVar("currentProfile");
+        query.date = query.date && new Date(query.date),
+        query.therapist = profile.id;
+        query.byTherapist = true;
+        return addAppointment(query, this);
+    },
+	submit(query){
+        query.date = query.date && new Date(query.date),
+        LOGGER.debug("submit appointment. Date:");
+        LOGGER.debug(query.date);
+        return addAppointment(query, this);
+    },
+    assign(query){
+        return this.scope.$.call([            
+            {"storage_assignAppointemnts>assignmentResult": [query]},
+            {"storage_getAppintmentsWithTherapist>appointments": [Object.keys(query)]},  
+            {"array_addToEach>appointments": ["_appointments", "link", urlUtils.getFullUrl("appointment/list")]},       
+            {"!msg_send": [{
+                "tmplName" : "mails/myNewAppointment",
+                "contenxts" :  "_appointments",
+            }]},
+        ]);
     }
 }
