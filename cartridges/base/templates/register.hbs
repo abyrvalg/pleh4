@@ -2,22 +2,23 @@
 	<link rel="stylesheet" href="/css/style.css">
     <script src="/js/form.js"></script>
 </head>
-<div>
+<div class="registration-form-container">
     <form action="" data-target="user_register" data-cbsuccess="route:/user/confirm">
+        <p class="title">Регистрация</p>
         <div class="input_wrap_vertical">
-            <input name="email" placeholder="Email"/>
+            <input name="email" placeholder="Email" class="input-field"/>
         </div>
         <div class="input_wrap_vertical">
-            <input name="password" type="password" placeholder="Пароль"/>
+            <input name="password" type="password" placeholder="Пароль" class="input-field"/>
         </div>
         <div class="input_wrap_vertical">
-            <input name="confirmPassword" type="password" placeholder="Повторите пароль"/>
+            <input name="confirmPassword" type="password" placeholder="Повторите пароль" class="input-field"/>
         </div>
         <div class="input_wrap_vertical">
-            <input name="firstName" placeholder="Имя"/>
+            <input name="firstName" placeholder="Имя" class="input-field"/>
         </div>
         <div class="input_wrap_vertical">
-            <input name="lastName" placeholder="Фамилия"/>
+            <input name="lastName" placeholder="Фамилия" class="input-field"/>
         </div>
         <div class="input_wrap_vertical">
             <input type="submit" class="register_submit" value="Register"/>

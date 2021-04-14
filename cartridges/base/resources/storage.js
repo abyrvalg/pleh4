@@ -73,7 +73,6 @@ module.exports = {
 		params.push(0);
 		vals.push("$"+params.length);
 		names.push('status');
-		console.log("WAT");
 		return STORAGE.get({
 			query : "insert into "+scheme+".appointments ("+names.join(',')+", create_date)\
                     values ("+vals.join(",")+", now())",
@@ -243,8 +242,15 @@ module.exports = {
         }
         return STORAGE.get({query: "update "+scheme+".appointments as a set therapist = r.therapist\
 		from (values "+map.join(",")+") as r(therapist, id) where a.id = r.id", params: params}).then(r=>{
-            console.log(r);
-            return {success : true}
+            return r.updatedRows ? {success : true} : {success : false, error : r}
         });
+	},
+	getAppintmentsWithTherapist(query){
+		var where = query.map((val, index)=>"$"+(index+1))
+		return STORAGE.get({
+			query : "select a.name, a.phone, a.date, a.time, u.tg_id from "+scheme+".appointments as a\
+				left join "+scheme+".users as u on u.id = a.therapist where a.id in ("+where.join(",")+")",
+			params: query
+		});
 	}
 }

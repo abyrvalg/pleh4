@@ -30,14 +30,16 @@ var initHelpers = (()=>{
 
 function template(path, data){
     var template = require(APP_ROOT+"/modules/app")('template').get(path),
-        asyncHelpers = initHelpers(this.scope);
+        asyncHelpers = data && initHelpers(this.scope);
         return data ? template.then((tpl)=>{
                 return Sqrl.render(tpl, data, { async: true, asyncHelpers: asyncHelpers}).catch(err=>{
                     LOGGER.error('error during processing "'+path+'" template:')
                     LOGGER.error(err);
                     return "";
                 });
-        }): template;
+        }): template.then(tmpl=>{
+            return tmpl;
+        });
 };
 
 module.exports = {
