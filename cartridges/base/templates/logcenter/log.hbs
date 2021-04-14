@@ -10,7 +10,17 @@
   <title>Log center</title>
 </head>
 {{! /* {{ @async logCenterHead() /}} */ }} 
-
+{{! /* When bug in LiteQL is fixed - remove nav below and uncomment string above */}}
+<nav class="nav-bar">
+  <div class="container">
+    <h1 class="logo">4help log-center</h1>
+    <a href="/logcenter/all" class="all">All</a>
+    <a href="/logcenter/debug" class="debug">Debug</a>
+    <a href="/logcenter/warn" class="warn">Warn</a>
+    <a href="/logcenter/error" class="error">Error</a>
+    <a href="/logcenter/fatal" class="fatal">Fatal</a>
+  </div>
+</nav>
 
 <section class="content">
   <div class="container">
@@ -24,18 +34,22 @@
           </tr>
           <tr>
             <th scope="col">№</th>
-            <th scope="col">Время</th>
             <th scope="col">Часовой пояс</th>
+            <th scope="col">Время</th>
             <th scope="col">Текст</th>
           </tr>
         </thead>
         <tbody id="table">
           {{@each(it.lines)=>elem}}
           <tr>
-            <th scope="row"></th>
-            <td>{{elem.time}}</td>
+            <th scope="row">{{elem.index}}</th>
             <td>{{elem.timezone}}</td>
-            <td>{{elem.text}}</td>
+            <td>{{elem.time}}</td>
+            <td>{{@each(elem.text)=>line}}
+              {{line}}
+              <br>
+              {{/each}}
+            </td>
           </tr>
           {{/each}}
         </tbody>

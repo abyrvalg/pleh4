@@ -44,11 +44,11 @@ module.exports = {
 
         let file = require(APP_ROOT + "/cartridges/base/resources/logs.js").file(filename);
 
-        require(APP_ROOT+"/modules/app")('logger').debug("file from logs: " + JSON.stringify(file) + " and filename: " + filename);
+        // require(APP_ROOT+"/modules/app")('logger').debug("file from logs: " + JSON.stringify(file) + " and filename: " + filename);
 
         return require(APP_ROOT + "/cartridges/base/resources/base.js").template("logcenter/log", file);
 
-        // This is correct, but it's time to shine has yet to come
+        // This part of code is good, but it's time to shine has yet to come
         // (Awaiting bug fix in LiteQL)
         // return scope.$.call([
         //     {"logs_file>file":[filename]},

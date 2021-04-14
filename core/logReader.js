@@ -102,46 +102,37 @@ function readLog(filename) {
       LOGGER.error(err);
     }
     const lines = data.split(/\r?\n/);
-    let cache;
-    // TODO: FIX THIS
-    // lines.forEach((line, index, arr) => {
-    //   if (!cache) {
-    //     let time = line.match(
-    //       /^(?:(?:\w{3}\s){2}(?:\d+\s){2}((?:\d+:?){3})\s(\w+\+\w+))/
-    //     );
-    //     cache.time = time[1];
-    //     cache.timezone = time[2];
-
-    //   // Don't look into this regex too much
-    //   // It's just modified regex from above
-    //   // But only matches the text from log
-    //     let text = line.match(/^(?:(?:\w{3}\s){2}(?:\d+\s){2}(?:(?:\d+:?){3})\s(?:\w+\+\w+).+:)(.+)/);
-    //     cache.text = text;
-    //   } else cache = line;
-    // });
-
-    // lines.forEach((line, index, arr)=>{
-    //   let time = line.match(
-    //       /^(?:(?:\w{3}\s){2}(?:\d+\s){2}((?:\d+:?){3})\s(\w+\+\w+))/
-    //     );
-    //   if(time){
-    //     if(cache){
-    //       ret.lines.add(cache);
-    //       cache = {};
-    //     }
-    //       cache = {};
-    //       cache.time = time[1];
-    //       cache.timezone = time[2];
-    //       // Don't look into this regex too much
-    //   // It's just modified time detect regex from above
-    //   // But only matches the text from log
-    //       cache.text = line.match(/^(?:(?:\w{3}\s){2}(?:\d+\s){2}(?:(?:\d+:?){3})\s(?:\w+\+\w+).+:)(.+)/)[1];
-
-    //   }
-    //   else{
-    //     if(cache)
-    //   }
-    // })
+    let buffer;
+    let counter = 0;
+    lines.forEach((line, index, arr) => {
+      // Matches time and timezone, also checks if all symbols in the beggining belong to timestamp
+      let time = line.match(/^(?:(?:\w{3}\s){2}(?:\d+\s){2}((?:\d+:?){3})\s(\w+\+\w+))/);
+      // If this is a new line
+      // In another words - line starts with timestamp
+      if(time){
+        buffer && ret.lines.push(buffer);
+        buffer = {
+          time: time[1],
+          timezone: time[2],
+          // This regex causes a bug. It treats "\t:" as an end of timestamp
+          // That means if log contains that combination (which i don't think is very likely)
+          // it will trim part of log before "\t:" combination
+          text: [line.match(/^(?:.+\t:)(.+)/)[1]],
+          index: counter++
+        }
+      }
+      // If this is NOT a new line
+      // In another words - no timestamp in line
+      else{
+        if(buffer) buffer.text.push(line);
+        else buffer = {
+          time: 'none',
+          timezone: 'none',
+          text: [line]
+        }
+      }
+    });
+  
     return ret;
   } else {
     LOGGER.warn("Attempt to read file with no filename provided");
