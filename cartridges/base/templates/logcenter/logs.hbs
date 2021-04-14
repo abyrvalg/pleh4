@@ -18,7 +18,7 @@
       <table class="table table-hover">
         <thead>
           <tr>
-            <h2>
+            <h2 id="pageName">
               {{it.categoryCap}}
             </h2>
           </tr>
@@ -30,7 +30,7 @@
         </thead>
         <tbody id="table">
           {{@each(it.files)=>elem}}
-          <tr class='clickable-row' data-href='/logcenter/logs?file={{elem.filename}}'>
+          <tr class='clickable-row type-{{elem.type}}' data-href='/logcenter/logs?file={{elem.filename}}'>
             <th scope="row">{{elem.index}}</th>
             <td>{{elem.filename}}</td>
             <td>{{elem.date}}</td>
@@ -75,3 +75,4 @@
     });
   });
 </script>
+<script src="/js/logcenter/headcolor.js" > </script>

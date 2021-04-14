@@ -128,6 +128,7 @@ function readLog(filename) {
         else buffer = {
           time: 'none',
           timezone: 'none',
+          index: 'none',
           text: [line]
         }
       }
@@ -160,6 +161,7 @@ function readLogs(type) {
         filename: filename[0],
         index: index,
         date: day + "/" + month + "/" + year,
+        type: filename[1]
       });
     }
   });
