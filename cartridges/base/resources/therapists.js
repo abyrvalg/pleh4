@@ -4,7 +4,7 @@ module.exports = {
 	setSchedules(query){
 		var profile = this.scope.session.getVar("currentProfile"),
 			therapistID = (profile && profile.id) || query.therapist,
-			params = [query.therapist],
+			params = [therapistID],
 			monthsQuery = [],    //TODO: use therapist model for this
 			setVals = [];
 		if(!therapistID) {
@@ -31,7 +31,7 @@ module.exports = {
 			fields : ["therapist", "month"],
 			setVals : setVals,
 			params : params
-		}).then(r=>{		
+		}).then(r=>{
 			return {
 				success : true
 			}

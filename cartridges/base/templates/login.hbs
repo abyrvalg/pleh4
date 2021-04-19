@@ -2,17 +2,18 @@
 	<link rel="stylesheet" href="/css/style.css">
     <script src="/js/form.js"></script>
 </head>
-<div>
+<div class="login-form-container">
     <form action="" data-target="user_login" data-cbsuccess="route:/user/index" data-cberror_invalid_login_or_password="errorShow:invalid_credentials" data-cberror_user_not_confirm="route:/user/confirm">
+        <p class="title">Авторизация</p>
         <div class="form_error hidden" data-error="invalid_credentials">Login or password is invalid</div>
         <div class="input_wrap_vertical">
-            <input name="email" required placeholder="Email"/>
+            <input name="email" required placeholder="Email" class="input-field"/>
         </div>
         <div class="input_wrap_vertical">
-            <input name="password" required type="password" placeholder="Пароль"/>
+            <input name="password" required type="password" placeholder="Пароль" class="input-field"/>
         </div>
         <div class="input_wrap_vertical">
-            <input type="submit" class="register_submit" value="Login"/>
+            <input type="submit" class="register_submit" value="Войти"/>
         </div>
     </form>
 </div>

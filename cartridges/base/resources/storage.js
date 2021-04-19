@@ -3,7 +3,7 @@ const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
 const dataUtils = require(APP_ROOT+"/modules/app")("utils", "data");
 const scheme = process.env.dbscheme;
 
-function getTherapist(params){
+function getTherapists(params){
 	var queryParams = []; 
 	if(params.id){
 		queryParams.push(params.id);
@@ -19,17 +19,17 @@ module.exports = {
 		if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
 		}
-		return getTherapist(params);
+		return getTherapists(params);
 	},
 	therapist(params) {
 		/*if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
 		}*/
 		var profile = this.scope.session.getVar("currentProfile");
-		return getTherapist({id:profile ? profile.id : params}).then(r=>r[0]);
+		return getTherapists({id:profile ? profile.id : params}).then(r=>r[0]);
 	},
 	therapistByTgID(tg_id) {
-		return getTherapist({tg_id:tg_id}).then(r=>r[0]);
+		return getTherapists({tg_id:tg_id}).then(r=>r[0]);
 	},
 	appointment(id){
 		return STORAGE.get({
@@ -73,7 +73,6 @@ module.exports = {
 		params.push(0);
 		vals.push("$"+params.length);
 		names.push('status');
-
 		return STORAGE.get({
 			query : "insert into "+scheme+".appointments ("+names.join(',')+", create_date)\
                     values ("+vals.join(",")+", now())",
@@ -82,7 +81,7 @@ module.exports = {
 			return r;
 		});
 	},
-	appointments(){
+	myAppointments(){
 		if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
 		}
@@ -91,11 +90,12 @@ module.exports = {
 			return {success : false, error : "therapist_id_is_missing"}
 		}
 		return STORAGE.get({
-			query : "select * from "+scheme+".appointments where therapist=$1 and (date > now() or date is null) order by date, time",
+			query : "select id, date, time, status, name, phone, how_to_call, therapist from "+scheme+".appointments where therapist=$1 and (date > now() or date is null) order by date, time",
 			params : [therapistID]
 		}).then(res=>res.map(ap=>{
 			return {
 				"id" : ap.id,
+				"therapist" : ap.therapist,
 				"date" : dateUtils.dateToString(ap.date),
 				"time" : dateUtils.timeToString(ap.time),
 				"confirmed" : ap.status > 0,
@@ -106,6 +106,18 @@ module.exports = {
 				"how_to_call_num" : ap.how_to_call,
 				"time_num" : ap.time
 			}
+		}));
+	},
+	unassignedAppointments(){
+		return STORAGE.get({
+			query : "select id, name, phone, how_to_call from "+scheme+".appointments where therapist is null"
+		}).then(res=>res.map(ap=>{
+			return {
+			"id" : ap.id,
+			"name" : ap.name,
+			"phone" : ap.phone,
+			"how_to_call" : ["viber", "telegram", "whatsUp", "Звонок"][ap.how_to_call],
+			"how_to_call_num" : ap.how_to_call}
 		}));
 	},
 	schedules(params){
@@ -205,5 +217,40 @@ module.exports = {
         }).then(r=>{
             return {status : r.updatedRows ? "ok" : "error"}
         });
+	},
+	getUsersByRoles(roles, andOr){
+		var where = [],
+			params = [];
+		!Array.isArray(roles) && (roles = [roles])
+		for(let i in roles){
+			params.push(roles[i]);
+			where.push("name = $"+params.length);
+		}
+		return STORAGE.get({
+			query : "select id, first_name, last_name, tg_id from "+scheme+".users \
+				where cast(FLOOR(roles/(select num from roles where "+where.join(" "+(andOr || "OR")+" ")+")) as integer) % 2 <> 0",
+			params : params
+		})
+	},
+	assignAppointemnts(query){
+		var map = [],
+            params = [];
+        for(let key in query){
+            params.push(query[key]);
+			params.push(key);
+			map.push("($"+(params.length-1)+", $"+params.length+")")
+        }
+        return STORAGE.get({query: "update "+scheme+".appointments as a set therapist = r.therapist\
+		from (values "+map.join(",")+") as r(therapist, id) where a.id = r.id", params: params}).then(r=>{
+            return r.updatedRows ? {success : true} : {success : false, error : r}
+        });
+	},
+	getAppintmentsWithTherapist(query){
+		var where = query.map((val, index)=>"$"+(index+1))
+		return STORAGE.get({
+			query : "select a.name, a.phone, a.date, a.time, u.tg_id from "+scheme+".appointments as a\
+				left join "+scheme+".users as u on u.id = a.therapist where a.id in ("+where.join(",")+")",
+			params: query
+		});
 	}
 }
