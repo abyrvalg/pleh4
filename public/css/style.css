@@ -51,7 +51,7 @@
     margin: 0;
     font-family: 'Circe',Arial,sans-serif;
     font-size: 100%;
-    max-width: 140px !important;
+    /*max-width: 140px !important;*/
 }
 .form_submit{
     font-family: 'Circe',Arial,sans-serif;
