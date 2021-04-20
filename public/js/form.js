@@ -1,12 +1,15 @@
 window.onload = function(){
-    function processCallback(cb, form){
+    function processCallback(cb, form, resp){
         cb = cb.split(":");
         ({
             route : ()=>window.location.pathname = cb[1],
-            errorShow : ()=>{
+            errorShow : (err)=>{
+                if(err){
+                    form.querySelector("[data-error="+cb[1]+"]").innerHTML = err;
+                }
                 form.querySelector("[data-error="+cb[1]+"]").classList.remove("hidden");
             }
-        })[cb[0]]();
+        })[cb[0]](resp);
     }
     document.querySelector("body").addEventListener("submit", (e)=>{
         if(e.target.tagName == "FORM"){
@@ -32,7 +35,7 @@ window.onload = function(){
                     }
                     else {
                         if(e.target.dataset["cberror_"+json.error]){
-                            processCallback(e.target.dataset["cberror_"+json.error], e.target);
+                            processCallback(e.target.dataset["cberror_"+json.error], e.target, json.msg);
                         }
                     }
                 })

@@ -200,3 +200,6 @@ input::placeholder {color: #000;}
 #selectTime{
     height: 15px !important;
 }
+.form_error {
+    color : red;
+}
