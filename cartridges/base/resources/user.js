@@ -35,8 +35,8 @@ module.exports = {
                     session.setVar("email", arg.email);
                     return {success : true}
                 }).catch(err=>{
-                    LOGGER.error("error during cognito signUp: "+(err && err.message));
-                    return {success : false}
+                    LOGGER.error("error during cognito signUp: "+(err && JSON.stringify(err)));
+                    return {success : false, error : "aws", msg : err.message}
                 });
             }
             else {
@@ -103,7 +103,7 @@ module.exports = {
         return amplify.Auth.confirmSignUp(username, arg.code).then(resp=>{
            return {success:true}
         }).catch(err=>{
-            LOGGER.error(err);
+            return {success : false, error:"aws", details : err}
         });
     },
     sendConfirm(arg){
@@ -112,7 +112,7 @@ module.exports = {
         return amplify.Auth.resendSignUp(username).then(resp=>{
             return {success : true}
         }).catch(err=>{
-            LOGGER.error(err);
+            return {success : false, error:"aws", details : err}
         });
     },
     getRolesNames(arg) {

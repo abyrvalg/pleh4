@@ -3,7 +3,8 @@
     <script src="/js/form.js"></script>
 </head>
 <div class="registration-form-container">
-    <form action="" data-target="user_register" data-cbsuccess="route:/user/confirm">
+    <form action="" data-target="user_register" data-cberror_AWS="errorShow:aws" data-cbsuccess="route:/user/confirm">
+        <div data-error="aws" class="hidden form_error"></div>
         <p class="title">Регистрация</p>
         <div class="input_wrap_vertical">
             <input name="email" placeholder="Email" class="input-field"/>
@@ -24,4 +25,5 @@
             <input type="submit" class="register_submit" value="Register"/>
         </div>
     </form>
+    <a href="/user/login">Войти</a>
 </div>
