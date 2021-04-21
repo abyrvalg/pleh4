@@ -1,5 +1,3 @@
-
-
 module.exports = {
     register : (scope)=>{
         return scope.$.call({"!base_template":["register", {}]});

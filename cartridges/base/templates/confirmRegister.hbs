@@ -2,18 +2,19 @@
 	<link rel="stylesheet" href="/css/style.css">
     <script src="/js/form.js"></script>
 </head>
-<div>
+<div class="registration-form-container confirm-container">
     <form action="" data-target="user_confirmRegister" data-cbsuccess="route:/user/login">
+        <p class="title">Подтверждение</p>
         <div class="input_wrap_vertical">
-            <input name="code" required placeholder="confirm code"/>
+            <input name="code" required placeholder="Код подтверждения" class="input-field"/>
         </div>
         <div class="input_wrap_vertical">
-            <input type="submit" class="code_submit" value="submit"/>
+            <input type="submit" class="code_submit register_submit" value="Подтвердить"/>
         </div>
     </form>
     <form action="" data-target="user_sendConfirm">
         <div class="input_wrap_vertical">
-            <input type="submit" class="code_submit" value="Send again"/>
+            <input type="submit" class="code_submit register_submit" value="Отправить снова"/>
         </div>
     </form>
 </div>
