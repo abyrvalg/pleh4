@@ -41,6 +41,8 @@
     display: inline-block;
     vertical-align: top;
     margin-top: 15px;
+    height: 65px;
+    width: 160px;
 }
 
 .form_field{
@@ -49,6 +51,7 @@
     margin: 0;
     font-family: 'Circe',Arial,sans-serif;
     font-size: 100%;
+    max-width: 140px !important;
 }
 .form_submit{
     font-family: 'Circe',Arial,sans-serif;
@@ -96,7 +99,7 @@
     font-size: 20px;
 }
 .field-top-label {
-    margin-top: -21px;
+    margin-top: -26px;
     font-size: 18px;
 }
 .pointer {
@@ -106,7 +109,7 @@
 .head_menu_block {
     border: solid;
     padding: 5px;
-    width: 100px;
+    width: 160px;
     margin: 0px 5px 5px 0px;
 }
 .head_menu_block_head{
@@ -190,4 +193,10 @@ input::placeholder {color: #000;}
 
 .register_submit:hover {
     cursor: pointer;
+}
+.choostime{
+    width: 260px;
+}
+#selectTime{
+    height: 15px !important;
 }

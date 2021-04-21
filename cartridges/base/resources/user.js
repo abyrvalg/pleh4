@@ -3,6 +3,7 @@ const STORAGE = require(APP_ROOT+"/modules/app")('storage');
 const dataUtils = require(APP_ROOT+"/modules/app")("utils", "data");
 const Session = require(APP_ROOT+'/core/session');
 const LOGGER = require(APP_ROOT+"/modules/app")('logger');
+const scheme = process.env.dbscheme;
 
 amplify.Amplify.configure({
     Auth: {
@@ -18,7 +19,7 @@ module.exports = {
     register(arg){
         var session = this.scope.session;
         return STORAGE.get({
-            query : "select id from public.users where email = $1 and cognito_confirmed = $2", 
+            query : "select id from "+scheme+".users where email = $1 and cognito_confirmed = $2", 
             params : [arg.email, true]
         }).then(user=>{
             if(!user || !user.length){
@@ -34,7 +35,7 @@ module.exports = {
                     session.setVar("email", arg.email);
                     return {success : true}
                 }).catch(err=>{
-                    LOGGER.error(err);
+                    LOGGER.error("error during cognito signUp: "+(err && err.message));
                     return {success : false}
                 });
             }
@@ -50,7 +51,7 @@ module.exports = {
         }
         return amplify.Auth.signIn(arg.email, arg.password).then(awsRes=>{
             return STORAGE.get({
-                query : "select id, first_name, last_name, roles, tg_id, cognito_confirmed from public.users where email = $1", 
+                query : "select id, first_name, last_name, roles, tg_id, cognito_confirmed from "+scheme+".users where email = $1", 
                 params : [arg.email]
             }).then(user=>{
                 var user = user.length ? user[0] : null,
@@ -66,14 +67,14 @@ module.exports = {
                 var params = dataUtils.decomposePow2(roles),
                     where = params.map((el, key)=>"num = $"+(key+1));
                 return STORAGE.get({
-                    query : "select id, name, permissions from public.roles where "+where.join(" or "),
+                    query : "select id, name, permissions from "+scheme+".roles where "+where.join(" or "),
                     params : params
                 }).then(roles=>{
                     var profile = session.getVar("currentProfile");
                     profile.roles = roles;
                     session.setVar("currentProfile", profile);
                     if(!user) return STORAGE.get({
-                        query : "insert into public.users (id, email, cognito_confirmed, roles, first_name, last_name) values ($1, $2, $3, $4, $5, $6)",
+                        query : "insert into "+scheme+".users (id, email, cognito_confirmed, roles, first_name, last_name) values ($1, $2, $3, $4, $5, $6)",
                         params : [userID, arg.email, true, 0, awsRes.attributes["given_name"], awsRes.attributes["family_name"]]
                     }).then(r=>{                    
                         return {success : true}

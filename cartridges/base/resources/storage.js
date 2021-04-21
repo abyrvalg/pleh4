@@ -1,17 +1,17 @@
 const STORAGE = require(APP_ROOT+"/modules/app")('storage');
 const dateUtils = require(APP_ROOT+"/modules/app")("utils", "date");
 const dataUtils = require(APP_ROOT+"/modules/app")("utils", "data");
-const Session = require(APP_ROOT+'/core/session');
+const scheme = process.env.dbscheme;
 
-function getTherapist(params){
+function getTherapists(params){
 	var queryParams = []; 
 	if(params.id){
 		queryParams.push(params.id);
-		return STORAGE.get({query : "select * from public.users where id=$1", params : queryParams});
+		return STORAGE.get({query : "select * from "+scheme+".users where id=$1", params : queryParams});
 	}
 	if(params.tg_id){
 		queryParams.push(params.tg_id);
-		return STORAGE.get({query : "select * from public.users where tg_id=$1", params : queryParams});
+		return STORAGE.get({query : "select * from "+scheme+".users where tg_id=$1", params : queryParams});
 	}
 }
 module.exports = {
@@ -19,27 +19,28 @@ module.exports = {
 		if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
 		}
-		return getTherapist(params);
+		return getTherapists(params);
 	},
-	therapist() {
-		if(!this.scope.session.ensure("auth")){
+	therapist(params) {
+		/*if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
-		}
-		return getTherapist({id:this.scope.session.getVar("currentProfile").id}).then(r=>r[0]);
+		}*/
+		var profile = this.scope.session.getVar("currentProfile");
+		return getTherapists({id:profile ? profile.id : params}).then(r=>r[0]);
 	},
 	therapistByTgID(tg_id) {
-		return getTherapist({tg_id:tg_id}).then(r=>r[0]);
+		return getTherapists({tg_id:tg_id}).then(r=>r[0]);
 	},
 	appointment(id){
 		return STORAGE.get({
-			query : "select * from public.appointments where id=$1",
+			query : "select * from "+scheme+".appointments where id=$1",
 			params : [id]
 		}).then(r=>r[0]);
 	},
 	appointmentAndSchedule(arg){
 		return STORAGE.get({
-            query : "select s.schedule, ap.id as appointment_id from public.schedules as s \
-                left join public.appointments as ap on ap.therapist=$1 and ap.date = $3 and ap.time = $4 and (ap.status > 0 or (ap.status = 0 and ap.create_date < now() + interval '6 hours'))\
+            query : "select s.schedule, ap.id as appointment_id from "+scheme+".schedules as s \
+                left join "+scheme+".appointments as ap on ap.therapist=$1 and ap.date = $3 and ap.time = $4 and (ap.status > 0 or (ap.status = 0 and ap.create_date < now() + interval '6 hours'))\
                 where s.therapist=$1 and s.month=$2", 
             params : [arg.therapistID, dateUtils.getYearMonth(new Date(arg.date)), arg.date, arg.time]
         }).then(res=>res && res[0]);
@@ -72,17 +73,15 @@ module.exports = {
 		params.push(0);
 		vals.push("$"+params.length);
 		names.push('status');
-
 		return STORAGE.get({
-			query : "insert into public.appointments ("+names.join(',')+", create_date)\
+			query : "insert into "+scheme+".appointments ("+names.join(',')+", create_date)\
                     values ("+vals.join(",")+", now())",
             params : params
 		}).then(r=>{
-			console.log(r);
 			return r;
 		});
 	},
-	appointments(){
+	myAppointments(){
 		if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
 		}
@@ -91,11 +90,12 @@ module.exports = {
 			return {success : false, error : "therapist_id_is_missing"}
 		}
 		return STORAGE.get({
-			query : "select * from public.appointments where therapist=$1 and (date > now() or date is null) order by date, time",
+			query : "select id, date, time, status, name, phone, how_to_call, therapist from "+scheme+".appointments where therapist=$1 and (date > now() or date is null) order by date, time",
 			params : [therapistID]
 		}).then(res=>res.map(ap=>{
 			return {
 				"id" : ap.id,
+				"therapist" : ap.therapist,
 				"date" : dateUtils.dateToString(ap.date),
 				"time" : dateUtils.timeToString(ap.time),
 				"confirmed" : ap.status > 0,
@@ -106,6 +106,18 @@ module.exports = {
 				"how_to_call_num" : ap.how_to_call,
 				"time_num" : ap.time
 			}
+		}));
+	},
+	unassignedAppointments(){
+		return STORAGE.get({
+			query : "select id, name, phone, how_to_call from "+scheme+".appointments where therapist is null"
+		}).then(res=>res.map(ap=>{
+			return {
+			"id" : ap.id,
+			"name" : ap.name,
+			"phone" : ap.phone,
+			"how_to_call" : ["viber", "telegram", "whatsUp", "Звонок"][ap.how_to_call],
+			"how_to_call_num" : ap.how_to_call}
 		}));
 	},
 	schedules(params){
@@ -130,12 +142,12 @@ module.exports = {
 			if(params.getAppointments) {
 				var appointmentsQuery = {
 					fields : "a.id as appointment_id, a.date as appointment_date, a.time as appointment_time, a.name as client_name, a.phone as client_phone",
-					join : "left join public.appointments as a on a.therapist = t.id and (a.status > 0 or (a.status = 0 and a.create_date < now() + interval '6 hours')) and ("+dateMonthQuery.join(" or ")+")"
+					join : "left join "+scheme+".appointments as a on a.therapist = t.id and (a.status > 0 or (a.status = 0 and a.create_date < now() + interval '6 hours')) and ("+dateMonthQuery.join(" or ")+")"
 				} //TODO configure interval value
 			}
 			let sqlQuery = {
-				query : "select "+(appointmentsQuery ? appointmentsQuery.fields+", " : "")+" t.id, t.first_name, t.last_name, s.month, s.schedule from public.users as t\
-				left join public.schedules as s on t.id = s.therapist and s.month in ("+months.join(",")+")\
+				query : "select "+(appointmentsQuery ? appointmentsQuery.fields+", " : "")+" t.id, t.first_name, t.last_name, s.month, s.schedule from "+scheme+".users as t\
+				left join "+scheme+".schedules as s on t.id = s.therapist and s.month in ("+months.join(",")+")\
 				"+(appointmentsQuery ? appointmentsQuery.join : "")+"\
 				where t.id = $1 order by s.month",
 				params: queryParams
@@ -200,10 +212,45 @@ module.exports = {
         });  
         if(!setFields.length) return;
         return STORAGE.get({
-            query : "update public.appointments set "+setFields.join(",")+" where id = $1 and therapist = $2",
+            query : "update "+scheme+".appointments set "+setFields.join(",")+" where id = $1 and therapist = $2",
             params : params
         }).then(r=>{
             return {status : r.updatedRows ? "ok" : "error"}
         });
+	},
+	getUsersByRoles(roles, andOr){
+		var where = [],
+			params = [];
+		!Array.isArray(roles) && (roles = [roles])
+		for(let i in roles){
+			params.push(roles[i]);
+			where.push("name = $"+params.length);
+		}
+		return STORAGE.get({
+			query : "select id, first_name, last_name, tg_id from "+scheme+".users \
+				where cast(FLOOR(roles/(select num from roles where "+where.join(" "+(andOr || "OR")+" ")+")) as integer) % 2 <> 0",
+			params : params
+		})
+	},
+	assignAppointemnts(query){
+		var map = [],
+            params = [];
+        for(let key in query){
+            params.push(query[key]);
+			params.push(key);
+			map.push("($"+(params.length-1)+", $"+params.length+")")
+        }
+        return STORAGE.get({query: "update "+scheme+".appointments as a set therapist = r.therapist\
+		from (values "+map.join(",")+") as r(therapist, id) where a.id = r.id", params: params}).then(r=>{
+            return r.updatedRows ? {success : true} : {success : false, error : r}
+        });
+	},
+	getAppintmentsWithTherapist(query){
+		var where = query.map((val, index)=>"$"+(index+1))
+		return STORAGE.get({
+			query : "select a.name, a.phone, a.date, a.time, u.tg_id from "+scheme+".appointments as a\
+				left join "+scheme+".users as u on u.id = a.therapist where a.id in ("+where.join(",")+")",
+			params: query
+		});
 	}
 }

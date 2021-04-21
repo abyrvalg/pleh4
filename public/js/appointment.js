@@ -41,6 +41,33 @@ window.onload = function(){
                 picker.setDate();
             }
         }
+        else if(e.target.classList.contains("save_assignment")){
+            var $assignTo = e.currentTarget.querySelectorAll(".assignTo");
+            if(!$assignTo.length){
+                alert("No therapist selected");
+                return;
+            };
+            var query = {"!appointment_assign":[{}]};
+            
+            $assignTo.forEach(el=>{
+                if(el.value){
+                    query["!appointment_assign"][0][el.dataset.appid] = el.value;
+                }
+            });
+            fetch("/ua/data", {
+                method : 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body:JSON.stringify(query)
+            }).then(resp=>{
+                resp.json && resp.json().then(json=>{
+                    if(json && json.success){
+                        location.reload();
+                    }
+                });
+            });
+        }
     });    
     const picker = datepicker("#calendar_inp", {        
         startDay : 1,
@@ -58,13 +85,12 @@ window.onload = function(){
                 'Content-Type': 'application/json;charset=utf-8'
             },
             body: JSON.stringify(e.target.dataset.appointment_id == 'new' ? {
-                "!appointment_submit" : [{
+                "!appointment_add" : [{
                     name : document.getElementById("client_name").value,
                     phone : document.getElementById("client_phone").value,
                     date : picker.dateSelected.toString().substr(0 ,24),
                     time : document.getElementById("appiontment_time").value,
-                    howToCall : document.getElementById("how_to_call").value,
-                    byTherapist : true
+                    howToCall : document.getElementById("how_to_call").value
                 }]
             } : {
                 "!storage_updateAppointment" : [{

@@ -40,7 +40,7 @@ module.exports = {
 	},
 	localizeObj(obj, locale){
 		var objStr = JSON.stringify(obj),
-			reg = /msg\(\w+\_\w+\)/g,
+			reg = /msg\(\w+\_[\w\^\$]+\)/g,
 			entities = objStr.match(reg),
 			keys = {},
 			promise = Promise.resolve(keys);		
@@ -50,10 +50,10 @@ module.exports = {
 			keys[category] = keys[category] || [];
 			keys[category].push(entArray[1].substr(0, entArray[1].length-1));
 		});
-
 		for(let key in keys) {
 			promise = promise.then((keys)=>{
-				return this.msg(key, keys[key], locale)
+				var res = this.msg(key, keys[key].map(el=>"\^"+el+""), locale);
+				return res;
 			}).then(msgs=>{
 				keys[key] = msgs;
 				return keys;
