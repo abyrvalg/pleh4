@@ -1,0 +1,24 @@
+<head>
+	<link rel="stylesheet" href="/css/style.css">
+    <script src="/js/userManagament.js"></script>
+</head>
+{{@async head() /}}
+<div class="user_table">
+    <div class="table_head">
+        <div class="table_cell">First name</div>
+        <div class="table_cell">Last name</div>
+        <div class="table_cell">roles</div>
+    </div>
+    {{@each(it.users)=>usr}}
+        <div class="user_row" data-roles="{{usr.roles}}">
+            <div class="table_cell">{{usr.first_name}}</div>
+            <div class="table_cell">{{usr.last_name}}</div>
+            <div class="table_cell">
+                {{@each(it.roles)=>role}}
+                    <div>{{role.name}} <input data-userid="{{usr.id}}" data-rolenum="{{role.num}}" type="checkbox" {{@isElementInBinSet(role.num, usr.roles || 0, ['checked', '']) /}}/></div>
+                {{/each}}
+            </div>
+        </div>
+    {{/each}}
+    <input type="submit" name="save"/>
+</div>

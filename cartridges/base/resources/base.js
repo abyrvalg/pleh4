@@ -8,9 +8,9 @@ var initHelpers = (()=>{
     var initted = false;
     var helpers = [];
     var lastScope = null;
-    return (scope)=>{
+    return (scope, specificHelpers)=>{
         lastScope = scope;
-        if(initted) return;
+        if(initted) return;        
         for(let key in partials){
             try{
                 Sqrl.helpers.define(key, ()=>{
@@ -23,14 +23,15 @@ var initHelpers = (()=>{
                 LOGGER.error(err);
             }
         }
+        Sqrl.helpers.define("isElementInBinSet", (p)=>Math.floor(p.params[1]/p.params[0]) % 2 ? p.params[2][0] : p.params[2][1]);
         initted = true;
         return helpers;
     }
 })();
 
-function template(path, data){
+function template(path, data, helpers){
     var template = require(APP_ROOT+"/modules/app")('template').get(path),
-        asyncHelpers = data && initHelpers(this.scope);
+        asyncHelpers = data && initHelpers(this.scope, helpers);
         return data ? template.then((tpl)=>{
                 return Sqrl.render(tpl, data, { async: true, asyncHelpers: asyncHelpers}).catch(err=>{
                     LOGGER.error('error during processing "'+path+'" template:')

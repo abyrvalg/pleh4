@@ -111,6 +111,8 @@
     padding: 5px;
     width: 160px;
     margin: 0px 5px 5px 0px;
+    display: inline-block;
+    vertical-align: top;
 }
 .head_menu_block_head{
     font-size: 20px;
@@ -202,4 +204,10 @@ input::placeholder {color: #000;}
 }
 .form_error {
     color : red;
+}
+
+.user_row{
+    border-bottom: solid;
+    border-right: solid;
+    width: 740px;
 }
