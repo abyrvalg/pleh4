@@ -1,5 +1,7 @@
 const CONFIG = require(APP_ROOT+"/modules/app")('config');
 const LOGGER = require(APP_ROOT+"/modules/app")('logger');
+// Depending on config, if storage is set to memory then new local session storage object is created
+// Else then this sets to redis session storage
 const SESSION_STORAGE_CLIENT = CONFIG.sessionStorage != 'memory' ? require('redis').createClient(process.env.REDISTOGO_URL) : (()=>{
 	var sessionStorage = {};
 	return{
@@ -117,12 +119,22 @@ module.exports = {
 			setSession(req, res).then(()=>onSession(req, res, next));
 		}		
 	},
+	// Transforms cookie
 	getSID(req){
 		return req && req.cookies && req.cookies['sid'];
 	},
+	// Base input of module
+	// Returns promise with session got from the storage or
+	// with an error
 	get(req){
+		// Assigns SID based on wether request is a string (meaning it's an SID) 
+		// or is it a cookie monster (meaning the getSID() method should be called)
 		var sessionID = typeof req == "string" ? req : this.getSID(req)
+
+		// New Promise generation
 		return new Promise((resolve, reject)=>{
+			// Request to the storage for session
+			// resp is JSON
 			SESSION_STORAGE_CLIENT.get("session_"+sessionID, (err, resp)=>{
 				if(err){
 					reject(err);

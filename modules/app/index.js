@@ -29,6 +29,7 @@ module.exports = (path, params)=>{
 		'hook' : 'core/hook',
 		'template' : 'core/template',
 		'storage' : 'core/storage',		
+		'logReader' : 'core/logReader',
 		'configUtil' : 'core/utils/configUtil'
 	}[path] || path));
 }

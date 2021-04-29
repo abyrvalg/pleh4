@@ -1,0 +1,58 @@
+{
+    "debug": [
+        {
+            "id": 1,
+            "date": "23.03.2021",
+            "time": "14:02:33",
+            "text": "Texte texte texet etetredg etteev"
+        },
+        {
+            "id": 2,
+            "date": "23.03.2021",
+            "time": "15:02:33",
+            "text": "Texte texte texet etetredg etteev"
+        }
+    ],
+    "error": [
+        {
+            "id": 1,
+            "date": "23.03.2021",
+            "time": "14:02:33",
+            "text": "Texte texte texet etetredg etteev"
+        },
+        {
+            "id": 2,
+            "date": "23.03.2021",
+            "time": "15:02:33",
+            "text": "Texte texte texet etetredg etteev"
+        }
+    ],
+    "warn": [
+        {
+            "id": 1,
+            "date": "23.03.2021",
+            "time": "14:02:33",
+            "text": "Texte texte texet etetredg etteev"
+        },
+        {
+            "id": 2,
+            "date": "23.03.2021",
+            "time": "15:02:33",
+            "text": "Texte texte texet etetredg etteev"
+        }
+    ],
+    "fatal": [
+        {
+            "id": 1,
+            "date": "23.03.2021",
+            "time": "14:02:33",
+            "text": "Texte texte texet etetredg etteev"
+        },
+        {
+            "id": 2,
+            "date": "23.03.2021",
+            "time": "15:02:33",
+            "text": "Texte texte texet etetredg etteev"
+        }
+    ]
+}

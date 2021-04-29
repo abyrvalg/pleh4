@@ -6,6 +6,7 @@
     "aws-amplify": "^3.3.15",
     "body-parser": "^1.19.0",
     "browserify": "^16.2.3",
+    "chokidar": "^3.5.1",
     "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
@@ -25,6 +26,7 @@
     "winston": "^3.2.1"
   },
   "scripts": {
+    "test": "node test.js",
     "start": "node server.js"
   },
   "main": "index.js",
