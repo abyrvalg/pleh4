@@ -13,6 +13,9 @@ const dataUtils = {
             Math.floor(num/pow2) % 2 && result.push(pow2);
         }
         return result;
+    },
+    isElementinBinSet(el, set){
+        return Math.floor(set/el) % 2;
     }
 }
 module.exports = dataUtils;

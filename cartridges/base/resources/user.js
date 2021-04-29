@@ -1,7 +1,6 @@
 const  amplify = require('aws-amplify');
 const STORAGE = require(APP_ROOT+"/modules/app")('storage');
 const dataUtils = require(APP_ROOT+"/modules/app")("utils", "data");
-const Session = require(APP_ROOT+'/core/session');
 const LOGGER = require(APP_ROOT+"/modules/app")('logger');
 const scheme = process.env.dbscheme;
 
@@ -132,7 +131,7 @@ module.exports = {
         permissionsNums = permissionsNums.filter((el, key, array)=>key == array.indexOf(el));
         var where = permissionsNums.map((el, key)=>"num = $"+(key+1));
         return STORAGE.get({
-            query : "select name, route from public.permissions where "+where.join(" or "),
+            query : "select name, route from "+scheme+".permissions where "+where.join(" or "),
             params : permissionsNums
         }).then(permissions=>{
             var structurred = [],

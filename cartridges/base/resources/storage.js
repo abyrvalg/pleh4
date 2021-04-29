@@ -252,5 +252,35 @@ module.exports = {
 				left join "+scheme+".users as u on u.id = a.therapist where a.id in ("+where.join(",")+")",
 			params: query
 		});
-	}
+	},
+	getRoles(){
+		return STORAGE.get({
+			query : "select id, name, num from "+scheme+".roles"
+		});
+	},
+	updateRoles(query) {
+		var map = [],
+            params = [];
+		for(let key in query){
+            params.push(query[key]);
+			params.push(key);
+			map.push("(cast($"+(params.length-1)+" as integer), $"+params.length+")")
+        }
+		return STORAGE.get({
+			query : "update "+scheme+".users as u set roles = r.roles\
+				from (values "+map.join(",")+") as r(roles, id) where u.id = r.id",
+			params : params
+		}).then(r=>{
+            return r && r.updatedRows ? {success : true} : {success : false, error : r}
+        });
+	},
+    getUsers(params){
+		      /*  if(!this.scope.session.ensure("auth")){
+			return {success: false, error: "not_available"}
+		}*/
+		
+    	return STORAGE.get({
+			query : "select id, first_name, last_name, email, roles from "+scheme+".users order by first_name"
+		});
+    }
 }
