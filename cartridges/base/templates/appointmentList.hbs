@@ -17,6 +17,7 @@
             <div class="table_cell">Time</div>
             <div class="table_cell">Stauts</div>
             <div class="table_cell">Move</div>
+            <div class="table_cell">Repeat</div>
         {{/if}}
     </div>
      <div class="appointment_list">
@@ -45,6 +46,14 @@
                         {{/if}}
                     </div> 
                     <div class="table_cell"><input class="move_appointment" data-id="{{app.id}}" type="submit" value="Перенести"/></div>
+                    <div class="table_cell">
+                        <select data-id="{{app.id}}" class="repeat_appintment">
+                            <option value="0">Однократно</option>
+                            <option value="1">раз в неделю</option>
+                            <option value="2">раз в две недели</option>
+                            <option value="3">раз в три недели</option>
+                        </select>
+                    </div>
                 {{#else}}
                     <div class="table_cell">
                         <select data-appId="{{app.id}}" class="assignTo">

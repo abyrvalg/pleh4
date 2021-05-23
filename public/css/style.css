@@ -23,7 +23,7 @@
 }
 .table_head{
     background-color: #cbcbcb;
-    width: 740px;
+    width: 850px;
     border-right: #cbcbcb solid;
 }
 .status{
@@ -34,7 +34,7 @@
     border-bottom: #cbcbcb solid;
 }
 .appointment_list{
-    width: 740px;
+    width: 850px;
     border-right: #cbcbcb solid;
 }
 .input_wrap{
@@ -84,7 +84,7 @@
 .appointment_table {
     vertical-align: top;
     display: inline-block;
-    width: 750px;
+    width: 850px;
 }
 .input_wrap_vertical{
     margin : 5px;
