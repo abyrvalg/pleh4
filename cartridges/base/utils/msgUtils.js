@@ -10,6 +10,7 @@ const mp = new TG.GetUpdateMessageProvider();
 api.setMessageProvider(mp)
 const msg = {
     send(options){
+        options.text = options.text.replace(/\+/g, '\\+');
         return api.sendMessage(options).then(r=>{
             return r;
         }).catch(err=>{
