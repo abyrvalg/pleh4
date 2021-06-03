@@ -196,7 +196,7 @@ module.exports = {
 			})
 		}
 	},
-	updateAppointment(query){
+	updateAppointment(query, transaction){
 		if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
 		}
@@ -214,9 +214,21 @@ module.exports = {
         return STORAGE.get({
             query : "update "+scheme+".appointments set "+setFields.join(",")+" where id = $1 and therapist = $2",
             params : params
-        }).then(r=>{
-            return {status : r.updatedRows ? "ok" : "error"}
+        }, transaction).then(r=>{
+            return r.transaction !== undefined ? r : {status : r.updatedRows ? "ok" : "error"}
         });
+	},
+	createTherapySession(query, transaction) {
+		return STORAGE.get({
+			query : "insert into "+scheme+".sessions (id, appointment_id, price_amount, status, date) select (select $1), a.id, price, $2, date from "+scheme+".appointments as a left join "+scheme+".users as u on u.id = a.therapist where a.id = $3",
+			params : [dataUtils.getUID(32), 0, query.appointmentID]
+		}, transaction);
+	},
+	removeTherapySession(query, transaction){
+		return STORAGE.get({
+			query : "delete from "+scheme+".sessions where appointment_id = $1",
+			params : [query.appointmentID]
+		}, transaction);
 	},
 	getUsersByRoles(roles, andOr){
 		var where = [],
