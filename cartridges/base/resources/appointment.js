@@ -87,5 +87,25 @@ module.exports = {
                 "contenxts" :  "_appointments",
             }]},
         ]);
+    },
+    cancel(query){
+        return this.scope.$.call([
+            {"storage_updateAppointment>upd" : [{id: query.id, status: -1}, {id : -1}]},
+            {"!storage_removeTherapySession" : [{appointmentID : query.id}, {id : "_upd.transaction", commit: true}]}
+        ]).then(r=>{
+            if(r.success){
+                return {success : true}
+           }
+        });
+    },
+    confirm(query){
+        return this.scope.$.call([
+            {"storage_updateAppointment>upd" : [{id: query.id, status: 1}, {id : -1}]},
+            {"!storage_createTherapySession" : [{appointmentID : query.id}, {id : "_upd.transaction", commit: true}]}
+        ]).then(r=>{
+            if(r.success){
+                return {success : true}
+           }
+        });
     }
 }

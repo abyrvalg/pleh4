@@ -14,7 +14,7 @@
     "googleapis": "^67.0.0",
     "graphql": "^0.13.2",
     "handlebars": "^4.0.11",
-    "liteql": "^0.2.1",
+    "liteql": "^0.2.2",
     "nodemailer": "^6.4.16",
     "pg": "^8.4.0",
     "redis": "^2.8.0",
