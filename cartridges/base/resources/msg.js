@@ -15,7 +15,7 @@ module.exports = {
             promise = promise.then((res)=>{
                 content = Sqrl.render(res.tmpl, context);
                 return msgUtils.send({
-                    chat_id : context.tg_id, 
+                    chat_id : context.tgid, 
                     parse_mode : "HTML",
                     text : content
                 }).then(r=>{
