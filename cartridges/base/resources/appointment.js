@@ -53,7 +53,7 @@ function addAppointment(query, currentInstance){
                             parse_mode : "MarkdownV2",
                             text : 'Новая заявка\\. От '+query.name+'\\. Телефон\\: '+query.phone+'\\. Предпочитает '+["viber", "telegram", "whatsUp", "Звонок"][+query.howToCall]+ 
                             ' как способ связи\\. [список заявок]('+urlUtils.getFullUrl("appointment/list")+')' 
-                        }).then(r=>{
+                        }).then(r=>{                            
                             return {success : true}
                         }) : {success : true})
                 });

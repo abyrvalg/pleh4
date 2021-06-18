@@ -23,8 +23,14 @@
 }
 .table_head{
     background-color: #cbcbcb;
-    width: 740px;
     border-right: #cbcbcb solid;
+    margin-top: 10px;
+}
+.table_cell.payment {
+    width: 475px;
+}
+.table_cell.payment input {
+    width: 475px;
 }
 .status{
     margin: 5px;
@@ -34,7 +40,7 @@
     border-bottom: #cbcbcb solid;
 }
 .appointment_list{
-    width: 740px;
+    width: 850px;
     border-right: #cbcbcb solid;
 }
 .input_wrap{
@@ -84,7 +90,7 @@
 .appointment_table {
     vertical-align: top;
     display: inline-block;
-    width: 750px;
+    width: 850px;
 }
 .input_wrap_vertical{
     margin : 5px;
@@ -120,6 +126,12 @@
 }
 .head_menu{
     background-color: #cecece;
+    width: 95%;
+    display: inline-block;
+}
+.mini_my_account {
+    width: 70px;
+    display: inline-block;
 }
 
 .head_menu_block_item {
