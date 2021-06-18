@@ -263,7 +263,10 @@ module.exports = {
 			query : "select a.name, a.phone, a.date, a.time, u.tg_id from "+scheme+".appointments as a\
 				left join "+scheme+".users as u on u.id = a.therapist where a.id in ("+where.join(",")+")",
 			params: query
-		});
+		}).then(r=>r.map(el=>{
+			el.tgid = el.tg_id //remove after fixing liteql
+			return el;
+		}));
 	},
 	getRoles(){
 		return STORAGE.get({
@@ -294,5 +297,71 @@ module.exports = {
     	return STORAGE.get({
 			query : "select id, first_name, last_name, email, roles from "+scheme+".users order by first_name"
 		});
-    }
+    },
+	getTransaction(params) {
+		return STORAGE.get({
+			query : "select "+params.fields.join(",")+" from "+scheme+".payment_transactions where id = $1",
+			params : [params.id]
+		}).then(r=>r && r[0]);
+	},
+	fulfillPaymentTransaction(transaction) {
+		if(transaction.id) {
+			return STORAGE.get({
+				query : "select pt.id, pt.status, pt.amount, c.name as client_name, c.thearapist, c.phone, s.id as session_id, s.price_amount as amount \
+					s.date, u.tg_id, u.id from "+shceme+".payment_transactions as pt left join "+scheme+".clients as c on pt.client = c.id \
+					left join "+scheme+".sessions as s on pt.session = s.id \
+					left joint "+scheme+".users on u.id = c.therapist where pt.id = $1",
+				params : [transaction.id]
+			}).then(r=>{
+				var result = r && r[0];
+				if(!result) return {success : false, error : "no_transaction_data_found"};
+				let amountDif = transaction.ammount - result.amount,
+					paymentStatus = amountDif > 0 ? 3 : (amountDif < 0 ? 1 : 2);
+				return STORAGE.get({
+					query : "update "+scheme+".paymant_transaction status = $1 where id = $2",
+					params : [paymentStatus, transaction.id]
+				}).then((r)=>{
+					return {success : true, data : result}
+				});
+			});
+		}
+		else if(transaction.clientID){
+			return STORAGE.get({
+				query : "insert into "+scheme+".payment_transactions (id, amount, status, external_id, client, date) values ($1, $2, $3, $4, $5, now())",
+				params : [dataUtils.getUID(32), transaction.amount, 3, transaction.external, transaction.clientID]
+			}).then(r=>{
+				return STORAGE.get({
+					query : "select c.name as client_name, c.phone as client_phone, u.tg_id from "+scheme+".clients as c left join "+scheme+".users as u on c.therapist = u.id where c.id = $1",
+					params : [transaction.clientID]
+				}).then(result=>{
+					return result ? {success : true, data: result[0]} : {success : false};
+				});
+			});
+		}
+	},
+	getClients(params){
+		return STORAGE.get({
+			query : "select id, name, phone, rate from "+scheme+".clients where therapist = $1",
+			params : [params.therapist]
+		});
+	},
+	getClient(params) {
+		return STORAGE.get({
+			query : "select "+params.fields.join(",")+" from "+scheme+".clients where id = $1",
+			params : [params.id]
+		}).then(r=>r && r[0]);
+	},
+	addClient(params) {
+		return STORAGE.get({
+			query : "insert into "+scheme+".clients (id, name, phone, rate, therapist, status, create_date) values ($1, $2, $3, $4, $5, $6, now())",
+			params : [dataUtils.getUID(32), params.name, params.phone, params.rate, params.therapist, 1]
+		}).then(r=>{
+			return {success : true}
+		});
+	},
+	disableClient(params) {
+		return STORAGE.get({
+			query : "update "+scheme+".clients set (status = $2) where "
+		}); 
+	}
 }
