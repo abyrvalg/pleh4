@@ -1,0 +1,84 @@
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul {
+  margin: 0;
+}
+a {
+  color: #fff;
+  text-decoration: none;
+}
+a:hover {
+  color: #fff;
+  text-decoration: none;
+}
+.nav-bar {
+  height: 64px;
+  background-color: #363585;
+}
+.nav-bar .container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  color: #fff;
+}
+.nav-bar .container .log {
+  font-weight: 700;
+}
+.nav-bar .container a {
+  font-size: 24px;
+  margin-left: 45px;
+  position: relative;
+  text-decoration: none;
+  color: #fff;
+}
+.nav-bar .container a::after {
+  background-color: #ffffff;
+  display: block;
+  content: "";
+  height: 2px;
+  width: 0%;
+  left: 0%;
+  position: absolute;
+  -webkit-transition: width 0.35s ease-in-out;
+  -moz--transition: width 0.35s ease-in-out;
+  transition: width 0.35s ease-in-out;
+  -webkit-transform: translateX(0%);
+  -moz-transform: translateX(0%);
+  transform: translateX(0%);
+}
+.nav-bar .container a:hover::after {
+  width: 100%;
+}
+.nav-bar .container a.active {
+  color: #fff;
+  text-decoration: underline;
+}
+.content {
+  padding-top: 3px;
+}
+.content .container {
+  display: flex;
+  justify-content: space-between;
+}
+.content .container .table-content {
+  width: 70%;
+}
+.content .container .filters {
+  width: 25%;
+}
+
+.clickable-row{
+  cursor: pointer;
+}
+
+#text {
+  text-overflow: ellipsis; 
+  max-width: 30ch; 
+  white-space: nowrap; 
+  overflow:hidden; 
+}

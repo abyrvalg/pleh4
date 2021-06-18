@@ -1,17 +1,22 @@
 window.onload = function(){
     document.querySelector(".appointment_table").addEventListener("click", (e)=>{
         if(e.target.parentNode.classList.contains("status")) {
+            let query;
+            if(e.target.dataset.status == '1') {
+                query = {"!appointment_confirm" : [{id : e.target.dataset.id}]};
+            }
+            else {
+                query = {"!appointment_cancel" : [{id : e.target.dataset.id}]}
+            }
             fetch("/data", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json;charset=utf-8'
                 },
-                body: JSON.stringify({
-                    "!storage_updateAppointment" : [{id : e.target.dataset.id, status : +e.target.dataset.status}]
-                })
+                body: JSON.stringify(query)
             }).then(r=>{
                 r && r.json && r.json().then(json=>{
-                    if(json.status == "ok") {
+                    if(json.success) {
                         e.target.closest(".change_status").innerHTML = '<div class="status">'+(e.target.dataset.status == - 1 
                         ? '<input class="button_confirm" data-id="'+e.target.dataset.id+'" type="submit" data-status="1" value="V"/>' 
                         : 'V')+'</div><div class="status">'+(e.target.dataset.status ==  1 

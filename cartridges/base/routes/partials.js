@@ -13,6 +13,11 @@ module.exports = {
             }]}
         ]);
     },
+    logCenterHead : (scope) =>{
+        return scope.$.call([
+            {"!base_template": ["logcenter/parts/head"]}
+        ]);
+    },
     htmlHead : (scope)=>{
 
     }

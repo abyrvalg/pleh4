@@ -1,3 +1,4 @@
+const e = require('express');
 const mocks = require('./storage.mock');
 const LOGGER = require(APP_ROOT+"/modules/app")('logger');
 const mode = "pg";
@@ -12,8 +13,11 @@ if(mode == "pg"){
 	});		
 	client.connect();
 }
+
+var transactions = [];
+
 module.exports = {
-	get(obj){
+	get(obj, transaction){
 		if(obj.type && obj.id || obj.query){
 			if(mode == "mock"){
 				return new Promise((resolver)=>{
@@ -34,19 +38,62 @@ module.exports = {
 					}
 				});
 			}
-			else if(mode == "pg"){
-				LOGGER.debug("DB query: "+obj.query.replace(/\$(\d+)/g, (m, v)=>obj.params[+v-1]));
-				return client.query(obj.query, obj.params).then(res=>{
-					if(res.command == "UPDATE"){
-						return {
-							updatedRows : res.rowCount
-						}
+			else if(mode == "pg"){				
+				let currentTransaction;
+				if(transaction && transaction.id !== undefined){
+					if(transaction.id == -1) {
+						transactions = transactions.filter(tr=>!tr.comitted);
+						transactions.push({
+							queries : [],
+							params : []
+						});
+						transaction.id = transactions.length - 1;
 					}
-					return res.rows;			
-				}).catch(err=>{
-					LOGGER.error(err);
-					return null;
-				});
+					transactions[transaction.id].queries.push(obj.query);
+					transactions[transaction.id].params.push(obj.params);
+					currentTransaction = transactions[transaction.id];
+				} else {
+					currentTransaction = {
+						queries : [obj.query],
+						params : [obj.params]
+					};
+				}
+				if (!transaction || transaction.commit || transaction.id === undefined) {		
+					let queryPromise = currentTransaction.queries.length == 1 ? Promise.resolve() : client.query("BEGIN");
+					currentTransaction.results = [];
+					currentTransaction.queries.forEach((el, key)=>{
+						queryPromise = queryPromise.then(r=>{
+							r && currentTransaction.results.push(r);
+							LOGGER.debug("DB query: "+el.replace(/\$(\d+)/g, (m, v)=>currentTransaction.params[key][+v-1]));
+							return client.query(el, currentTransaction.params[key]).catch(err=>{
+								LOGGER.error("ERROR during processing query:"+el);
+								LOGGER.error(err);
+								return client.query("ROLLBACK").then(r=>{
+									return {success : false}
+								});
+							});
+						})
+					});
+					return currentTransaction.queries.length == 1 ? queryPromise.then(res=>{
+						res && currentTransaction.results.push(res);
+						if(res.command == "UPDATE"){
+							return {
+								updatedRows : res.rowCount
+							}
+						}
+						return res.rows;
+					}) : queryPromise.then(r=>client.query("COMMIT").then(res=>{
+						r && currentTransaction.results.push(r);
+						res && currentTransaction.results.push(res);
+						currentTransaction.comitted = true;
+						return {success: true, results : currentTransaction.results};		
+					}).catch(err=>{
+						LOGGER.error(err);
+						return {success:false};
+					}));
+				} else {
+					return  Promise.resolve({success : true, transaction : transaction.id});
+				}
 			}
 		}
 	},

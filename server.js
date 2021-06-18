@@ -101,9 +101,16 @@ function start() {
 			res.send('404');
 		}).then(session=>{
 			var $ = new LiteQL(),
+				// Removes any dots from path
 				path = req.path.replace(/\./g, ''),
+				// Splits the path in 2 parts:
+				// 1: part before the last '/' symbol - any combination of '/', letters and/or numbers;
+				// 2: last part of path without '/'. Only text and numerical symbols after it.
 				match = path.match(/((?:\/\w+)+)?\/(\w+)$/),
 				resultPromise,
+				// Looks for language combination consisting 
+				// of 2 letters (i.e. "ua" or "en") at the start of string
+				// Should it really look for ANY combination of 2 letters?
 				locale = req.url.match(/^\/(\w{2})\//);
 			locale = locale && locale[1];
 			locale = locale || CONFIG.defaultLocale;
@@ -115,6 +122,8 @@ function start() {
 			for(let key in CONFIG.cartridgePath) {
 				try{
 					var route = require('./cartridges/'+CONFIG.cartridgePath[key]+'/routes'+(match && match[1] || '/index'))[match && match[2] || 'index'];	
+					// LOGGER.debug("Path to route: " + ('./cartridges/'+CONFIG.cartridgePath[key]+'/routes'+(match && match[2] || '/index')));
+					// LOGGER.debug("AND trying to access " + (match && match[1] || 'index') + " from file above");
 				}catch(e){
 					LOGGER.debug(e);
 					continue;
