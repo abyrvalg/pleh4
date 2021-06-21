@@ -1,10 +1,10 @@
 (()=>{
-    var url = "https://pleh4.herokuapp.com/data",
+    var url = document.getElementById("payment_form").dataset.url,
         transaction = window.location.search.match(/transaction\=(\w+)/),
         client = window.location.search.match(/client\=(\w+)/);
     transaction = transaction && transaction[1];
     client = client && client[1];
-    fetch(url, {
+    fetch(url+"data", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
@@ -19,8 +19,7 @@
             button.setMerchantId(json.merchantID);
             json.amount && button.setAmount(+json.amount, 'UAH', true);
             button.setHost('pay.fondy.eu');
-            button.setResponseUrl('https://4help.com');
-            console.log(button.getUrl());
+            button.setResponseUrl(url);
             json.transactionID && button.addParam('transactionID', json.transactionID); 
             json.clientID && button.addParam("clientID", json.clientID);
             json.therapistID && button.addParam('therapistID', json.therapistID); 
@@ -28,16 +27,19 @@
                 this.setCheckoutWrapper('#payment_form');
                 this.addCallback(data=>{
                     if(data.response_status == "success") {
-                        return fetch(url, {
+                        return fetch(url+"data", {
                             method : 'POST',
                             headers: {
                                 'Content-Type': 'application/json;charset=utf-8'
                             },
-                            body: JSON.stringify({'!payment_success': [JSON.parse(JSON.stringify(data.send_data).replace(/\_/g, "--underscore--")), {
-                                clientID : json.clientID
-                            }]})
+                            body: JSON.stringify([
+                                {'payment_success': [JSON.parse(JSON.stringify(data.send_data).replace(/\_/g, "--underscore--")), {clientID : json.clientID}]},
+                                {"base_msg>msg": ["payment", ["paymentSuccess"]]}
+                            ])
                         }).then(r=>{
-                            document.getElementById("payment_form").innerHTML = '<div class="confirm_window">Оплата Пройшла Успішно</div>'
+                            r && r.json().then(json=>{
+                                document.getElementById("payment_form").innerHTML = '<div class="confirm_window">'+json.msg.paymentSuccess+'</div>'
+                            });                            
                         })
                     }
                 });
