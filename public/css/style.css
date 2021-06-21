@@ -223,3 +223,6 @@ input::placeholder {color: #000;}
     border-right: solid;
     width: 740px;
 }
+#payment_form {
+    height:750px;
+}
