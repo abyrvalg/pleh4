@@ -78,7 +78,10 @@ function start() {
 				$.scope.locale = locale;
 				$.scope.$ = $;	
 				$.call(query).then((result)=>{
-					session.updatePresistance().then(()=>res.send(result));
+					session.updatePresistance().then(()=>res.send(result)).catch(err=>{
+						LOGGER.error(err);
+						return {success : false}
+					});
 				}).catch((e)=>{
 					LOGGER.error(e);
 				});

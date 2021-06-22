@@ -28,5 +28,22 @@ window.onload = function(){
                 });
             });
         }
+        if(e.target.classList.contains('remove_client')) {
+            fetch("/ua/data", {
+                method : 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body:JSON.stringify({"!client_remove" : [{
+                    id : e.target.dataset.id
+                }]})
+            }).then(resp=>{
+                resp.json && resp.json().then(json=>{
+                    if(json && json.success){
+                        location.reload();
+                    }
+                });
+            });
+        }
     });
 } 
