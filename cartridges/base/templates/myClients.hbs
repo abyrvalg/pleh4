@@ -18,7 +18,7 @@
         <div class="table_cell payment" title="https://4help.com.ua/payment?client={{client.id}}">
             <input value="https://4help.com.ua/oplata/?client={{client.id}}"/>
         </div>
-        <div class="table_cell rate"><input type="button" class="remove_client" value="Удалить"/></div>
+        <div class="table_cell rate"><input type="button" class="remove_client" data-id="{{client.id}}" value="Удалить"/></div>
     </div>
     {{/each}}
     <input type="button" class="new_client" value="Новый"/> 
