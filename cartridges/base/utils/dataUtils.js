@@ -1,7 +1,7 @@
 const dataUtils = {
-    getUID(length) {
+    getUID(length, options) {
         var text = "",
-            possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            possible = options && options.lowercase ? "abcdefghijklmnopqrstuvwxyz0123456789" : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         for (var i = 0; i < length; i++)
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         return text;

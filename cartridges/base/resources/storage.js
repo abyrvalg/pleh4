@@ -39,7 +39,7 @@ module.exports = {
 	},
 	appointmentAndSchedule(arg){
 		return STORAGE.get({
-            query : "select s.schedule, ap.id as appointment_id from "+scheme+".schedules as s \
+            query : "select s.schedule, ap.id as appointment from "+scheme+".schedules as s \
                 left join "+scheme+".appointments as ap on ap.therapist=$1 and ap.date = $3 and ap.time = $4 and (ap.status > 0 or (ap.status = 0 and ap.create_date < now() + interval '6 hours'))\
                 where s.therapist=$1 and s.month=$2", 
             params : [arg.therapistID, dateUtils.getYearMonth(new Date(arg.date)), arg.date, arg.time]
@@ -354,7 +354,7 @@ module.exports = {
 	addClient(params) {
 		return STORAGE.get({
 			query : "insert into "+scheme+".clients (id, name, phone, rate, therapist, status, create_date) values ($1, $2, $3, $4, $5, $6, now())",
-			params : [dataUtils.getUID(32), params.name, params.phone, params.rate, params.therapist, 1]
+			params : [dataUtils.getUID(32, {lowercase:true}), params.name, params.phone, params.rate, params.therapist, 1]
 		}).then(r=>{
 			return {success : true}
 		});
