@@ -18,7 +18,6 @@ module.exports = {
                 }
             promise = promise.then((models)=>{			
                 return app("model", CONFIG.cartridgePath[key]+"."+modelName).catch((e)=>{
-                    console.log(e);
                 }).then((currentModel)=>{
                     if(currentModel){
                         models.push(currentModel);

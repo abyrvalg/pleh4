@@ -341,14 +341,14 @@ module.exports = {
 	},
 	getClients(params){
 		return STORAGE.get({
-			query : "select id, name, phone, rate from "+scheme+".clients where therapist = $1",
-			params : [params.therapist]
+			query : "select id, name, phone, rate from "+scheme+".clients where therapist = $1 and status = $2",
+			params : [params.therapist, 1]
 		});
 	},
 	getClient(params) {
 		return STORAGE.get({
-			query : "select "+params.fields.join(",")+" from "+scheme+".clients where id = $1",
-			params : [params.id]
+			query : "select "+params.fields.join(",")+" from "+scheme+".clients where id = $1 and status = $2",
+			params : [params.id, 1]
 		}).then(r=>r && r[0]);
 	},
 	addClient(params) {
@@ -361,7 +361,8 @@ module.exports = {
 	},
 	disableClient(params) {
 		return STORAGE.get({
-			query : "update "+scheme+".clients set (status = $2) where "
+			query : "update "+scheme+".clients set status = $2 where id=$1",
+			params : [params.id, 0]
 		}); 
 	}
 }

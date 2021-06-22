@@ -89,6 +89,7 @@ class Session {
 		return new Promise(resolve=>{
 			if(instance.needsUpdate){
 				SESSION_STORAGE_CLIENT.set("session_"+instance.sid, JSON.stringify(instance.scope), (err, status)=>{
+					SESSION_STORAGE_CLIENT.expireat("session_"+instance.sid, parseInt((+new Date)/1000) + 86400);
 					instance.needsUpdate = false;
 					resolve();
 				});
