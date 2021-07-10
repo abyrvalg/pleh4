@@ -327,13 +327,13 @@ module.exports = {
 		}
 		else if(transaction.clientID){
 			return STORAGE.get({
-				query : "insert into "+scheme+".payment_transactions (id, amount, status, external_id, client, date) values ($1, $2, $3, $4, $5, now())",
-				params : [dataUtils.getUID(32), transaction.amount, 3, transaction.external, transaction.clientID]
-			}).then(r=>{
+				query : "select c.name as client_name, c.therapist_share, c.phone as client_phone, u.tg_id from "+scheme+".clients as c left join "+scheme+".users as u on c.therapist = u.id where c.id = $1",
+				params : [transaction.clientID]
+			}).then(result=>{
 				return STORAGE.get({
-					query : "select c.name as client_name, c.phone as client_phone, u.tg_id from "+scheme+".clients as c left join "+scheme+".users as u on c.therapist = u.id where c.id = $1",
-					params : [transaction.clientID]
-				}).then(result=>{
+					query : "insert into "+scheme+".payment_transactions (id, amount, status, external_id, client, therapist_share, date) values ($1, $2, $3, $4, $5, $6, now())",
+					params : [dataUtils.getUID(32), transaction.amount, 3, transaction.external, transaction.clientID, result[0].therapist_share]
+				}).then(r=>{
 					return result ? {success : true, data: result[0]} : {success : false};
 				});
 			});
@@ -341,7 +341,7 @@ module.exports = {
 	},
 	getClients(params){
 		return STORAGE.get({
-			query : "select id, name, phone, rate from "+scheme+".clients where therapist = $1 and status = $2",
+			query : "select id, name, phone, rate, therapist_share from "+scheme+".clients where therapist = $1 and status = $2",
 			params : [params.therapist, 1]
 		});
 	},
@@ -353,8 +353,8 @@ module.exports = {
 	},
 	addClient(params) {
 		return STORAGE.get({
-			query : "insert into "+scheme+".clients (id, name, phone, rate, therapist, status, create_date) values ($1, $2, $3, $4, $5, $6, now())",
-			params : [dataUtils.getUID(32, {lowercase:true}), params.name, params.phone, params.rate, params.therapist, 1]
+			query : "insert into "+scheme+".clients (id, name, phone, rate, therapist, status, therapist_share, create_date) values ($1, $2, $3, $4, $5, $6, $7, now())",
+			params : [dataUtils.getUID(32, {lowercase:true}), params.name, params.phone, params.rate, params.therapist, 1, params.share]
 		}).then(r=>{
 			return {success : true}
 		});

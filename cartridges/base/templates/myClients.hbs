@@ -8,13 +8,15 @@
         <div class="table_cell">Имя</div>
         <div class="table_cell">Телефон</div>
         <div class="table_cell">Тариф</div>|
+        <div class="table_cell">Доля терапевта</div>|
         <div class="table_cell">Платеж</div>|   
     </div>
     {{@each(it.clients)=>client}}
     <div>
         <div class="table_cell name">{{client.name}}</div>
         <div class="table_cell phone">{{client.phone}}</div>
-        <div class="table_cell rate">{{client.rate}}</div>        
+        <div class="table_cell rate">{{client.rate}}</div>
+        <div class="table_cell rate">{{client.therapist_share}}</div>  
         <div class="table_cell payment" title="https://4help.com.ua/payment?client={{client.id}}">
             <input value="https://4help.com.ua/oplata/?client={{client.id}}"/>
         </div>
@@ -26,6 +28,7 @@
         <input placeholder="Имя" name="name" value=""/>
         <input placeholder="Телефон" name="phone" value=""/>
         <input placeholder="Тариф" name="rate" value=""/>
+        <input placeholder="Доля" name="share" value=""/>
         <input type="button" class="add_client" value="Добавить"/> 
         <input type="button" class="cancel" value="Отмена"/> 
     </form>

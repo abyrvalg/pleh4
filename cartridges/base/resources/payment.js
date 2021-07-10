@@ -25,12 +25,12 @@ module.exports = {
         }) : this.scope.$.call({
             "!storage_getClient" : {fields : ["id", "rate", "therapist"], id : query.clientID}
         }).then(r=>{
-            return {
+            return r ? {
                 merchantID : +process.env.paymentMerchantID,
                 clientID : r.id,
                 amount : r.rate,
                 therapistID : r.therapist
-            }
+            } : {success : false, error: "no_client_found"}
         })
     },
     success(data, transaction){

@@ -14,6 +14,7 @@ module.exports = {
                 name : query.name,
                 phone : query.phone,
                 rate : query.rate,
+                share : query.share,
                 therapist : therapistID
             }
         })

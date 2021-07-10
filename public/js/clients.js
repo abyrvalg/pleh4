@@ -18,7 +18,8 @@ window.onload = function(){
                 body:JSON.stringify({"!client_newClient" : [{
                     name : document.querySelector("input[name=name]").value,
                     phone : document.querySelector("input[name=phone]").value,
-                    rate : document.querySelector("input[name=rate]").value
+                    rate : document.querySelector("input[name=rate]").value,
+                    share : document.querySelector("input[name=share]").value
                 }]})
             }).then(resp=>{
                 resp.json && resp.json().then(json=>{
