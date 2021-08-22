@@ -7,11 +7,13 @@ function getTherapists(params){
 	var queryParams = []; 
 	if(params.id){
 		queryParams.push(params.id);
-		return STORAGE.get({query : "select * from "+scheme+".users where id=$1", params : queryParams});
+		return STORAGE.get({query : "select u.id, first_name, last_name, rate, tg_id, rate, share from "+scheme+".users as u \
+			left join "+scheme+".therapists on t.user_id = u.id where u.id=$1", params : queryParams});
 	}
 	if(params.tg_id){
 		queryParams.push(params.tg_id);
-		return STORAGE.get({query : "select * from "+scheme+".users where tg_id=$1", params : queryParams});
+		return STORAGE.get({query : "select u.id, first_name, last_name, rate, tg_id, rate, share from "+scheme+".users as u \
+			left join "+scheme+".therapists on t.user_id = u.id where tg_id=$1", params : queryParams});
 	}
 }
 module.exports = {
@@ -310,7 +312,8 @@ module.exports = {
 				query : "select pt.id, pt.status, pt.amount, c.name as client_name, c.thearapist, c.phone, s.id as session_id, s.price_amount as amount \
 					s.date, u.tg_id, u.id from "+shceme+".payment_transactions as pt left join "+scheme+".clients as c on pt.client = c.id \
 					left join "+scheme+".sessions as s on pt.session = s.id \
-					left joint "+scheme+".users on u.id = c.therapist where pt.id = $1",
+					left join "+scheme+".users as u on u.id = c.therapist \
+					left join "+scheme+".therapists as t on t.id=c.therapist where pt.id = $1",
 				params : [transaction.id]
 			}).then(r=>{
 				var result = r && r[0];
@@ -327,22 +330,101 @@ module.exports = {
 		}
 		else if(transaction.clientID){
 			return STORAGE.get({
-				query : "select c.name as client_name, c.therapist_share, c.phone as client_phone, u.tg_id from "+scheme+".clients as c left join "+scheme+".users as u on c.therapist = u.id where c.id = $1",
-				params : [transaction.clientID]
+				query : "select c.name as client_name, c.therapist_share, c.phone as client_phone, u.tg_id, pa.merchant as therapist_merchant, tpa.merchant as tech_merchant, cpa.merchant as center_merchant \
+				from "+scheme+".clients as c \
+				left join "+scheme+".therapists as t on t.id = c.therapist\
+				left join "+scheme+".users as u on t.user_id = u.id \
+				left join "+scheme+".payment_accounts as pa on pa.user_id = t.user_id\
+				left join "+scheme+".payment_accounts as tpa on tpa.role = 2\
+				left join "+scheme+".payment_accounts as cpa on cpa.role = 1\
+				where c.id = $1",
+				params : [transaction.clientID]	
 			}).then(result=>{
+				let transactionID = dataUtils.getUID(32);
 				return STORAGE.get({
 					query : "insert into "+scheme+".payment_transactions (id, amount, status, external_id, client, therapist_share, date) values ($1, $2, $3, $4, $5, $6, now())",
-					params : [dataUtils.getUID(32), transaction.amount, 3, transaction.external, transaction.clientID, result[0].therapist_share]
+					params : [transactionID, transaction.amount, 3, transaction.external, transaction.clientID, result[0].therapist_share]
 				}).then(r=>{
-					return result ? {success : true, data: result[0]} : {success : false};
+					let data = result[0];
+					data.transactionID = transactionID;
+					return result ? {success : true, data: data} : {success : false};
 				});
 			});
 		}
 	},
+	getExtendedPaymentTransaction(id){
+		return STORAGE.get({
+			query : "select u.first_name as therapist_first_name, u.last_name as therapist_last_name, c.name as client_name,  pt.amount, pt.external_id, pt.therapist_share, \
+			pa.merchant as therapist_merchant, tpa.merchant as tech_merchant,\
+			cpa.merchant as center_merchant, tpa.secret as tech_secret \
+			from "+scheme+".payment_transactions as pt \
+			left join "+scheme+".clients as c on c.id = pt.client \
+			left join "+scheme+".therapists as t on t.id = c.therapist \
+			left join "+scheme+".users as u on u.id = t.user_id \
+			left join "+scheme+".payment_accounts as pa on pa.user_id = t.user_id \
+			left join "+scheme+".payment_accounts as tpa on tpa.role = 1\
+			left join "+scheme+".payment_accounts as cpa on cpa.role = 2\
+			where pt.id = $1",
+			params : [id]
+		}).then(r => r && r[0]);
+	},
+	settleTransaction(id){
+		return STORAGE.get({
+			query : "update "+scheme+".payment_transactions set settled = true where id = $1",
+			params : [id]
+		}).then(res=>{
+			return {success : !!res}
+		});
+	},
+	getSplitTransactionReciever() {
+		return STORAGE.get({
+			query : "select u.tg_id from "+scheme+".payment_accounts as pa \
+			left join "+scheme+".users as u on u.id = pa.user_id \
+			where pa.role = $1",
+			params : [2]
+		}).then(res=>res && res[0] && res[0].tg_id);
+	},
+	getPaymentAccount(params) {
+		var where = [],
+			queryParams = [];
+		if(params.roles){
+			params.roles.forEach(role=>{
+				queryParams.push(role);
+				where.push("$"+(queryParams.length))
+			});
+			where = "role in ("+where.join(", ")+")";
+		}
+		if(params.clientID){
+			return STORAGE.get({
+				query : "select p.merchant as merchant_therapist, p.secret as secret_therapist, tp.merchant as merchant_tech, tp.secret as secret_tech \
+					from "+scheme+".payment_accounts tp \
+					left join "+scheme+".clients as c on c.id = $1 \
+					left join "+scheme+".therapists as t on t.id = c.therapist \
+					left join "+scheme+".payment_accounts as p on p.user_id = t.user_id and p.role = 2\
+					where tp.role = 1",
+				params : [params.clientID]
+			}).then(res=>{
+				res = res && res[0];
+				let suffix = res.merchant_therapist ? "therapist" : "tech",
+					fieldToReturn = {};
+				params.fields.forEach(field=>{
+					fieldToReturn[field] = res[field+"_"+suffix];
+				});
+				fieldToReturn.noSplit = !!res.merchant_therapist;
+				return fieldToReturn;
+			});
+		}
+		return STORAGE.get({
+			query : "select "+params.fields.join(", ")+" from "+scheme+".payment_accounts where "+where,
+			params : queryParams
+		});
+	},
 	getClients(params){
 		return STORAGE.get({
-			query : "select id, name, phone, rate, therapist_share from "+scheme+".clients where therapist = $1 and status = $2",
-			params : [params.therapist, 1]
+			query : "select c.id, c.name, c.phone, c.rate, c.therapist_share from "+scheme+".therapists as t \
+				left join "+scheme+".clients as c on c.therapist = t.id\
+				where t.user_id = $1 and status = $2",
+			params : [params.userID, 1]
 		});
 	},
 	getClient(params) {
@@ -353,8 +435,9 @@ module.exports = {
 	},
 	addClient(params) {
 		return STORAGE.get({
-			query : "insert into "+scheme+".clients (id, name, phone, rate, therapist, status, therapist_share, create_date) values ($1, $2, $3, $4, $5, $6, $7, now())",
-			params : [dataUtils.getUID(32, {lowercase:true}), params.name, params.phone, params.rate, params.therapist, 1, params.share]
+			query : "insert into "+scheme+".clients (id, name, phone, rate, therapist, status, therapist_share, create_date) values ($1, $2, $3, $4, \
+				(select id from "+scheme+".therapists where user_id = $5)), $6, $7, now())",
+			params : [dataUtils.getUID(32, {lowercase:true}), params.name, params.phone, params.rate, params.userID, 1, params.share]
 		}).then(r=>{
 			return {success : true}
 		});
@@ -364,5 +447,25 @@ module.exports = {
 			query : "update "+scheme+".clients set status = $2 where id=$1",
 			params : [params.id, 0]
 		}); 
+	},
+	createTherapists(){
+		return STORAGE.get({
+			query : "select u.id from "+scheme+".users as u left join "+scheme+".therapists as t on u.id = t.user_id \
+			where cast(FLOOR(roles/(select num from roles where name = $1)) as integer) % 2 <> 0 and t.id is null",
+			params : ["therapist"]
+		}).then((users)=>{
+			var lines = [];
+			if(!users.length) {
+				return {success : true, msg : "no therapists to create"}
+			}
+			users.forEach(user=>{
+				lines.push("("+["'"+dataUtils.getUID(32)+"'", "'"+user.id+"'"].join(", ")+")")
+			});
+			return STORAGE.get({
+				query : "insert into "+scheme+".therapists (id, user_id) values "+lines.join(",")
+			}).then(r=>{
+				return {success : true, msg : lines.length+" therapists has been created"}
+			});
+		});
 	}
 }

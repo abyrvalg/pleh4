@@ -17,10 +17,9 @@ amplify.Amplify.configure({
 module.exports = {
     register(arg){
         var session = this.scope.session;
-        return STORAGE.get({
-            query : "select id from "+scheme+".users where email = $1 and cognito_confirmed = $2", 
-            params : [arg.email, true]
-        }).then(user=>{
+        return this.scope.$.call({fields : [id], where : {
+            email : arguments.email, cognito_confiemed : true
+        }}).then(user=>{
             if(!user || !user.length){
                 return amplify.Auth.signUp({
                     username:  arg.email,
@@ -165,5 +164,13 @@ module.exports = {
     logout(){
         this.scope.session.setVar("currentProfile", null);
         return {success:true}
+    },
+    updateUsersRoles(query){
+        return this.scope.$.call({
+            "storage_updateRoles" : query,
+            "storage_createTherapists" : []
+        }).then((r)=>{
+            return {success : true}
+        });
     }
 }
