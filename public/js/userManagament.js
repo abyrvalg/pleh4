@@ -16,7 +16,7 @@ window.onload = function(){
                 'Content-Type': 'application/json;charset=utf-8'
             },
             body: JSON.stringify({
-                "!storage_updateRoles" : [changeList]
+                "!user_updateUsersRoles" : [changeList]
             })
         }).then(r=>{
             r.json().then(json=>{

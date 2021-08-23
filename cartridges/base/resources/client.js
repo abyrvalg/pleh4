@@ -1,21 +1,21 @@
 module.exports = {
 	getMyCleints(query){
         var profile = this.scope.session.getVar("currentProfile"),
-			therapistID = (profile && profile.id) || query.therapist;
+            userID = (profile && profile.id) || query.therapist;
         return this.scope.$.call({
-            "!storage_getClients" : {therapist : therapistID}
+            "!storage_getClients" : {userID : userID}
         });
     },
     newClient(query){
         var profile = this.scope.session.getVar("currentProfile"),
-			therapistID = (profile && profile.id) || query.therapist;
+			userID = (profile && profile.id) || query.therapist;
         return this.scope.$.call({
             "!storage_addClient" : {
                 name : query.name,
                 phone : query.phone,
                 rate : query.rate,
                 share : query.share,
-                therapist : therapistID
+                userID : userID
             }
         })
     },

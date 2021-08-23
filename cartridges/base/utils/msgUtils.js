@@ -36,17 +36,17 @@ const msg = {
                     params :  [""+update.message.from.id]
             }).then(therapist=>{
                     if(!therapist || therapist.length == 0) {
-                        if(!/\w{32}|\w{64}/.test(update.message.text)) {
+                        if(!/\w{32}|\w{64}/.test(update.message.text) && !~update.message.text.indexOf("@") ) {
                             msg.send({
                                 chat_id : update.message.from.id,
-                                text : "Йо. я тебя пока не знаю, введи свой серийный номер"
+                                text : "Йо. я тебя пока не знаю, введи свой серийный номер или емейл"
                             }).then(info=>{
                                 //console.log(info);
                             });
                         }
                         else {
                             STORAGE.get({
-                                query : "update "+scheme+".users set tg_id = $1 where id = $2",
+                                query : "update "+scheme+".users set tg_id = $1 where "+(~update.message.text.indexOf("@") ? "email" : "id")+" = $2",
                                 params : [""+update.message.from.id, update.message.text],
                             }).then(r=>{
                                 if(r.updatedRows == 1) {
