@@ -15,7 +15,8 @@
         }})
     }).then(resp=>{
         resp && resp.json().then(json=>{
-            var button = $ipsp.get("button");
+            var button = $ipsp.get("button"),
+                redirectURL = json.redirectURL;
             button.setMerchantId(json.merchantID);
             json.amount && button.setAmount(+json.amount, 'UAH', true);
             button.setHost('pay.fondy.eu');
@@ -38,6 +39,10 @@
                             ])
                         }).then(r=>{
                             r && r.json().then(json=>{
+                                if(redirectURL) {
+                                    window.location.replace(redirectURL);
+                                    return;
+                                }
                                 document.getElementById("payment_form").innerHTML = '<div class="confirm_window">'+json.msg.paymentSuccess+'</div>'
                             });                            
                         })
