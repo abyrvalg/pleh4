@@ -166,10 +166,10 @@ module.exports = {
         return {success:true}
     },
     updateUsersRoles(query){
-        return this.scope.$.call({
-            "storage_updateRoles" : query,
-            "storage_createTherapists" : []
-        }).then((r)=>{
+        return this.scope.$.call([
+            {"storage_updateRoles" : query},
+            {"storage_createTherapists" : []}
+        ]).then((r)=>{
             return {success : true}
         });
     }
