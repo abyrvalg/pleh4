@@ -436,7 +436,7 @@ module.exports = {
 	addClient(params) {
 		return STORAGE.get({
 			query : "insert into "+scheme+".clients (id, name, phone, rate, therapist, status, therapist_share, create_date) values ($1, $2, $3, $4, \
-				(select id from "+scheme+".therapists where user_id = $5)), $6, $7, now())",
+				(select id from "+scheme+".therapists where user_id = $5), $6, $7, now())",
 			params : [dataUtils.getUID(32, {lowercase:true}), params.name, params.phone, params.rate, params.userID, 1, params.share]
 		}).then(r=>{
 			return {success : true}
