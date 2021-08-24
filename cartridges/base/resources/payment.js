@@ -100,7 +100,8 @@ module.exports = {
                 merchantID : +r.accounts.merchant,
                 clientID : r.client.id,
                 amount : r.client.rate,
-                therapistID : r.client.therapist
+                therapistID : r.client.therapist,
+                redirectURL : process.env.paymentRedirectURL,
             } : {success : false, error: "no_client_found"}
         })
     },
