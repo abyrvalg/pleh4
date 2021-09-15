@@ -21,6 +21,7 @@ function setSession(req, res){
 		let sid = getSid(32);
 		res.cookie('sid', sid, {httpOnly : true, expires : new Date(Date.now() + SESSION_EXP_TIME*1000)});
 		SESSION_STORAGE_CLIENT.set('session_'+sid, '{}', (err, status)=>{
+			SESSION_STORAGE_CLIENT.expireat("session_"+sid, parseInt((+new Date)/1000) + 86400);
 			req.cookies['sid'] = sid;
 			resolve(sid);
 		});
@@ -100,6 +101,7 @@ class Session {
 		});		
 	}
 }
+
 module.exports = {
 	check(req, res, next){
 		if(req.cookies && req.cookies['sid']){

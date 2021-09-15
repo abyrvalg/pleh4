@@ -76,9 +76,16 @@ function start() {
 				$.scope.req = req;
 				$.scope.res = res;
 				$.scope.locale = locale;
-				$.scope.$ = $;	
+				$.scope.$ = new LiteQL();
+				$.scope.$.scope.isServer = true;
+				$.scope.$.scope.session;
+				$.scope.$.scope.req;
+				$.scope.$.scope.res;
+				$.scope.$.scope.locale;
+				$.scope.$.scope.$ = $.scope.$;
 				$.call(query).then((result)=>{
 					session.updatePresistance().then(()=>res.send(result)).catch(err=>{
+						console.log("fdfdsfdsf");
 						LOGGER.error(err);
 						return {success : false}
 					});
@@ -117,6 +124,7 @@ function start() {
 				locale = req.url.match(/^\/(\w{2})\//);
 			locale = locale && locale[1];
 			locale = locale || CONFIG.defaultLocale;
+			$.scope.isServer = true;
 			$.scope.session = session;
 			$.scope.req = req;
 			$.scope.res = res;
