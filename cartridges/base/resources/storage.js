@@ -18,28 +18,40 @@ function getTherapists(params){
 }
 module.exports = {
 	therapists(params) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
 		}
 		return getTherapists(params);
 	},
 	therapist(params) {
-		/*if(!this.scope.session.ensure("auth")){
+		if(!this.scope.isServer){
 			return {success: false, error: "not_available"}
-		}*/
+		} 
 		var profile = this.scope.session.getVar("currentProfile");
 		return getTherapists({id:profile ? profile.id : params}).then(r=>r[0]);
 	},
 	therapistByTgID(tg_id) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return getTherapists({tg_id:tg_id}).then(r=>r[0]);
 	},
 	appointment(id){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "select * from "+scheme+".appointments where id=$1",
 			params : [id]
 		}).then(r=>r[0]);
 	},
 	appointmentAndSchedule(arg){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
             query : "select s.schedule, ap.id as appointment from "+scheme+".schedules as s \
                 left join "+scheme+".appointments as ap on ap.therapist=$1 and ap.date = $3 and ap.time = $4 and (ap.status > 0 or (ap.status = 0 and ap.create_date < now() + interval '6 hours'))\
@@ -48,6 +60,9 @@ module.exports = {
         }).then(res=>res && res[0]);
 	},
 	addAppointment(arg){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		var vals = ["$1", "$2", "$3"],
 			names = ['id', 'name', 'phone'],
 			params = [dataUtils.getUID(32), arg.name, arg.phone];
@@ -84,6 +99,9 @@ module.exports = {
 		});
 	},
 	myAppointments(){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
 		}
@@ -111,6 +129,9 @@ module.exports = {
 		}));
 	},
 	unassignedAppointments(){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "select id, name, phone, how_to_call from "+scheme+".appointments where therapist is null"
 		}).then(res=>res.map(ap=>{
@@ -123,6 +144,9 @@ module.exports = {
 		}));
 	},
 	schedules(params){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
 		var queryParams = [],
 			profile = this.scope.session.getVar("currentProfile"),
 			therapistID = profile ? profile.id : params.id;
@@ -199,6 +223,9 @@ module.exports = {
 		}
 	},
 	updateAppointment(query, transaction){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
 		if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
 		}
@@ -221,18 +248,27 @@ module.exports = {
         });
 	},
 	createTherapySession(query, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "insert into "+scheme+".sessions (id, appointment_id, price_amount, status, date) select (select $1), a.id, price, $2, date from "+scheme+".appointments as a left join "+scheme+".users as u on u.id = a.therapist where a.id = $3",
 			params : [dataUtils.getUID(32), 0, query.appointmentID]
 		}, transaction);
 	},
 	removeTherapySession(query, transaction){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "delete from "+scheme+".sessions where appointment_id = $1",
 			params : [query.appointmentID]
 		}, transaction);
 	},
 	getUsersByRoles(roles, andOr){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		var where = [],
 			params = [];
 		!Array.isArray(roles) && (roles = [roles])
@@ -247,6 +283,9 @@ module.exports = {
 		})
 	},
 	assignAppointemnts(query){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		var map = [],
             params = [];
         for(let key in query){
@@ -260,6 +299,9 @@ module.exports = {
         });
 	},
 	getAppintmentsWithTherapist(query){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		var where = query.map((val, index)=>"$"+(index+1))
 		return STORAGE.get({
 			query : "select a.name, a.phone, a.date, a.time, u.tg_id from "+scheme+".appointments as a\
@@ -271,11 +313,17 @@ module.exports = {
 		}));
 	},
 	getRoles(){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "select id, name, num from "+scheme+".roles"
 		});
 	},
 	updateRoles(query) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		var map = [],
             params = [];
 		for(let key in query){
@@ -292,6 +340,9 @@ module.exports = {
         });
 	},
     getUsers(params){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		      /*  if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
 		}*/
@@ -301,12 +352,18 @@ module.exports = {
 		});
     },
 	getTransaction(params) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "select "+params.fields.join(",")+" from "+scheme+".payment_transactions where id = $1",
 			params : [params.id]
 		}).then(r=>r && r[0]);
 	},
 	fulfillPaymentTransaction(transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		if(transaction.id) {
 			return STORAGE.get({
 				query : "select pt.id, pt.status, pt.amount, c.name as client_name, c.thearapist, c.phone, s.id as session_id, s.price_amount as amount \
@@ -353,6 +410,9 @@ module.exports = {
 		}
 	},
 	getExtendedPaymentTransaction(id){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "select u.first_name as therapist_first_name, u.last_name as therapist_last_name, c.name as client_name,  pt.amount, pt.external_id, pt.therapist_share, \
 			pa.merchant as therapist_merchant, tpa.merchant as tech_merchant,\
@@ -369,6 +429,9 @@ module.exports = {
 		}).then(r => r && r[0]);
 	},
 	settleTransaction(id){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "update "+scheme+".payment_transactions set settled = true where id = $1",
 			params : [id]
@@ -377,6 +440,9 @@ module.exports = {
 		});
 	},
 	getSplitTransactionReciever() {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "select u.tg_id from "+scheme+".payment_accounts as pa \
 			left join "+scheme+".users as u on u.id = pa.user_id \
@@ -385,6 +451,9 @@ module.exports = {
 		}).then(res=>res && res[0] && res[0].tg_id);
 	},
 	getPaymentAccount(params) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		var where = [],
 			queryParams = [];
 		if(params.roles){
@@ -420,6 +489,9 @@ module.exports = {
 		});
 	},
 	getClients(params){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "select c.id, c.name, c.phone, c.rate, c.therapist_share from "+scheme+".therapists as t \
 				left join "+scheme+".clients as c on c.therapist = t.id\
@@ -428,12 +500,18 @@ module.exports = {
 		});
 	},
 	getClient(params) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "select "+params.fields.join(",")+" from "+scheme+".clients where id = $1 and status = $2",
 			params : [params.id, 1]
 		}).then(r=>r && r[0]);
 	},
 	addClient(params) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "insert into "+scheme+".clients (id, name, phone, rate, therapist, status, therapist_share, create_date) values ($1, $2, $3, $4, \
 				(select id from "+scheme+".therapists where user_id = $5), $6, $7, now())",
@@ -443,12 +521,18 @@ module.exports = {
 		});
 	},
 	disableClient(params) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "update "+scheme+".clients set status = $2 where id=$1",
 			params : [params.id, 0]
 		}); 
 	},
 	createTherapists(){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
 		return STORAGE.get({
 			query : "select u.id from "+scheme+".users as u left join "+scheme+".therapists as t on u.id = t.user_id \
 			where cast(FLOOR(roles/(select num from roles where name = $1)) as integer) % 2 <> 0 and t.id is null",
