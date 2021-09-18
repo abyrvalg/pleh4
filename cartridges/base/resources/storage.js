@@ -463,7 +463,7 @@ module.exports = {
 			});
 			where = "role in ("+where.join(", ")+")";
 		}
-		if(params.clientID){
+		/*if(params.clientID){
 			return STORAGE.get({
 				query : "select p.merchant as merchant_therapist, p.secret as secret_therapist, tp.merchant as merchant_tech, tp.secret as secret_tech \
 					from "+scheme+".payment_accounts tp \
@@ -482,11 +482,11 @@ module.exports = {
 				fieldToReturn.noSplit = !!res.merchant_therapist;
 				return fieldToReturn;
 			});
-		}
+		}*/
 		return STORAGE.get({
 			query : "select "+params.fields.join(", ")+" from "+scheme+".payment_accounts where "+where,
 			params : queryParams
-		});
+		}).then(res=>res && res[0]);
 	},
 	getClients(params){
 		if(!this.scope.isServer){
