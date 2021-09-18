@@ -27,8 +27,7 @@
             $ipsp('checkout').scope(function(){
                 this.setCheckoutWrapper('#payment_form');
                 this.addCallback(data=>{
-                    console.log(data);
-                    if(data.response_status == "success") {
+                    if(data.response_status == "success" || data.final === true) {
                         return fetch(url+"data", {
                             method : 'POST',
                             headers: {
