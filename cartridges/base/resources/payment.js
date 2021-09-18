@@ -14,8 +14,8 @@ function getSignature(obj, secret) {
     return shasum.digest('hex');
 }
 
-function checkSignature(obj){
-    return obj.signature === getSignature(obj);
+function checkSignature(obj, secret){
+    return obj.signature === getSignature(obj, secret);
 }
 function splitTransaction(transactionDetails){
     var http = require("https");
@@ -110,7 +110,7 @@ module.exports = {
         var $ = this.scope.$,
             amount = (+data.amount)/100;
 
-        return $.call({"!storage_getPaymentAccount>accounts" : {fields : ["secret"], roles : [PAYMENT_COMPANY_ACCOUNT], clientID : transaction.clientID}}).then(payment=>{
+        return $.call({"!storage_getPaymentAccount" : {fields : ["secret"], roles : [PAYMENT_COMPANY_ACCOUNT], clientID : transaction.clientID}}).then(payment=>{
             if(!checkSignature(data, payment.secret)){
                 return {success : false, error: "signature_not_match"}
             }
@@ -155,7 +155,6 @@ module.exports = {
                 centerShare : +((+data.amount) * (1 - (+data.therapist_share)/100)).toFixed(2),
                 tech_secret : data.tech_secret,
             }).then(res=>{
-                console.log(res);
                 if(res && res.order) {
                     return $.call([
                         {"storage_settleTransaction" : id},
