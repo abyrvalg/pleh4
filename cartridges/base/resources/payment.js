@@ -94,7 +94,7 @@ module.exports = {
             }
         }) : this.scope.$.call([{
             "storage_getClient>client" : {fields : ["id", "rate", "therapist", "rate"], id : query.clientID}},
-            {"storage_getPaymentAccount>accounts" : {fields : ["merchant"], roles : [PAYMENT_TECH_ACCOUNT], clientID : query.clientID}
+            {"storage_getPaymentAccount>accounts" : {fields : ["merchant"], roles : [PAYMENT_COMPANY_ACCOUNT], clientID : query.clientID}
         }]).then(r=>{
             return r ? {
                 merchantID : +r.accounts.merchant,
@@ -110,11 +110,10 @@ module.exports = {
         var $ = this.scope.$,
             amount = (+data.amount)/100;
 
-        return $.call({"!storage_getPaymentAccount>accounts" : {fields : ["secret"], roles : [PAYMENT_TECH_ACCOUNT], clientID : transaction.clientID}}).then(payment=>{
+        return $.call({"!storage_getPaymentAccount>accounts" : {fields : ["secret"], roles : [PAYMENT_COMPANY_ACCOUNT], clientID : transaction.clientID}}).then(payment=>{
             if(!checkSignature(data, payment.secret)){
                 return {success : false, error: "signature_not_match"}
             }
-            console.log(payment);
             return $.call({
                 "!storage_fulfillPaymentTransaction" : {
                     id : transaction.id,
@@ -126,7 +125,7 @@ module.exports = {
                 if(!transactionDetails.success) {
                     return {success : false}
                 }                
-                !payment.noSplit && $.call({"payment_split": transactionDetails.data.transactionID})
+                //!payment.noSplit && $.call({"payment_split": transactionDetails.data.transactionID})
                 return $.call({
                     "!msg_send" : {
                         "tmplName" : "mails/paymentRecieved",
