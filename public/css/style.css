@@ -97,7 +97,7 @@
 }
 .confirm_window {
     background-color: #46b450;
-    width: 1170px;
+    width: 100%;
     font-family: "Montserrat", sans-serif;
     text-align: center;
     padding: 30px 0px;
