@@ -224,7 +224,7 @@ input::placeholder {color: #000;}
     width: 740px;
 }
 #payment_form {
-    height:100vw;
+    height:110vw;
     min-width: 300px;
     margin: auto;
 }
