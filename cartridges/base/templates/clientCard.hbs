@@ -1,0 +1,38 @@
+<head>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/clients.js"></script>
+</head>
+{{@async head() /}}
+<div id="clients_table" data-clientID="{{it.card.id}}">
+    <div>Имя : {{it.card.name}}</div>
+    <div>
+        <div>Назначенные тесты</div>
+        <div id="test_table">
+            <div class="table_head">
+                <div class="table_cell">Тест</div> 
+                <div class="table_cell">Дата назначения</div> 
+            </div>
+            <div>
+                {{@each(it.card.prescriptions)=>prescription}}
+                    <div>
+                        <div class="table_cell">{{prescription.name}}</div> 
+                        <div class="table_cell">{{prescription.prescriptionDate}}</div>
+                    </div>
+                {{/each}}
+            </div>
+        </div>
+    </div>
+    <div>
+        <div>Назначить тест</div>
+        <div>
+            <select class="prescript_test_select">
+                {{@each(it.tests)=>test}}
+                    <option value="{{test.id}}">
+                        {{test.name}}
+                    </option>
+                {{/each}}
+            </select>
+            <input type="button" class="prescritp_test_submit" value="Назначить"/>
+        </div>
+    </div>
+</div>

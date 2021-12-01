@@ -78,10 +78,10 @@ function start() {
 				$.scope.locale = locale;
 				$.scope.$ = new LiteQL();
 				$.scope.$.scope.isServer = true;
-				$.scope.$.scope.session;
-				$.scope.$.scope.req;
-				$.scope.$.scope.res;
-				$.scope.$.scope.locale;
+				$.scope.$.scope.session = session;
+				$.scope.$.scope.req = req;
+				$.scope.$.scope.res = res;
+				$.scope.$.scope.locale = locale;
 				$.scope.$.scope.$ = $.scope.$;
 				$.call(query).then((result)=>{
 					session.updatePresistance().then(()=>res.send(result)).catch(err=>{
