@@ -58,7 +58,7 @@ module.exports = {
 						params : [obj.params]
 					};
 				}
-				if (!transaction || transaction.commit || transaction.id === undefined) {		
+				if (!transaction || transaction.commit || transaction.id === undefined) {
 					let queryPromise = currentTransaction.queries.length == 1 ? Promise.resolve() : client.query("BEGIN");
 					currentTransaction.results = [];
 					currentTransaction.queries.forEach((el, key)=>{

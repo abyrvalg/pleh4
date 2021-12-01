@@ -47,4 +47,20 @@ window.onload = function(){
             });
         }
     });
+    document.querySelector(".prescritp_test_submit").addEventListener("click", e=>{
+        fetch("/ua/data", {
+            method : 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body:JSON.stringify({"!therapyTest_prescript" : [{
+                clientID : document.getElementById("clients_table").dataset.clientid,
+                testID : document.querySelector(".prescript_test_select").value
+            }]})
+        }).then(resp=>{
+            resp.json && resp.json().then(json=>{
+                console.log(json);
+            })
+        })
+    });
 } 

@@ -13,7 +13,7 @@
     </div>
     {{@each(it.clients)=>client}}
     <div>
-        <div class="table_cell name">{{client.name}}</div>
+        <div class="table_cell name"><a href="/client/view?id={{client.id}}">{{client.name}}</a></div>
         <div class="table_cell phone">{{client.phone}}</div>
         <div class="table_cell rate">{{client.rate}}</div>
         <div class="table_cell rate">{{client.therapist_share}}</div>  

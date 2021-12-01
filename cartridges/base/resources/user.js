@@ -1,8 +1,6 @@
 const  amplify = require('aws-amplify');
-const STORAGE = require(APP_ROOT+"/modules/app")('storage');
 const dataUtils = require(APP_ROOT+"/modules/app")("utils", "data");
 const LOGGER = require(APP_ROOT+"/modules/app")('logger');
-const scheme = process.env.dbscheme;
 
 amplify.Amplify.configure({
     Auth: {
@@ -47,42 +45,34 @@ module.exports = {
         if(session.getVar("currentProfile")){
             return {success: false, error : "user_is_already_logged_in"};
         }
+        var $ = this.scope.$;
         return amplify.Auth.signIn(arg.email, arg.password).then(awsRes=>{
-            return STORAGE.get({
-                query : "select id, first_name, last_name, roles, tg_id, cognito_confirmed from "+scheme+".users where email = $1", 
-                params : [arg.email]
-            }).then(user=>{
-                var user = user.length ? user[0] : null,
-                    userID = user ? user.id : dataUtils.getUID(32),
-                    roles = user ? user.roles : 0;
+            return $.call({"!storage_getUserData" : [{
+                email : arg.email, fields : ['id', 'firstName', 'lastName', 'tgId', {'roles' : ['num', 'name']}, {'permissions' : ['name', 'num', 'route']}]}]
+            }).then(userData=>{
+                var userID = userData ? userData.id : dataUtils.getUID(32),
+                    roles = userData ? userData.roles : [];
+                    permissions = userData ? userData.permissions : [];
                 session.setVar("currentProfile", {
                     id : userID,
                     email : awsRes.attributes.email,
                     first_name : awsRes.attributes["given_name"],
                     last_name : awsRes.attributes["family_name"],
-                    roles : roles || 0
+                    roles : roles || [],
+                    permissions : permissions || []
                 });
-                var params = dataUtils.decomposePow2(roles),
-                    where = params.map((el, key)=>"num = $"+(key+1));
-                return STORAGE.get({
-                    query : "select id, name, permissions from "+scheme+".roles where "+where.join(" or "),
-                    params : params
-                }).then(roles=>{
-                    var profile = session.getVar("currentProfile");
-                    profile.roles = roles;
-                    session.setVar("currentProfile", profile);
-                    if(!user) return STORAGE.get({
-                        query : "insert into "+scheme+".users (id, email, cognito_confirmed, roles, first_name, last_name) values ($1, $2, $3, $4, $5, $6)",
-                        params : [userID, arg.email, true, 0, awsRes.attributes["given_name"], awsRes.attributes["family_name"]]
-                    }).then(r=>{                    
-                        return {success : true}
-                    }).catch(err=>{
-                        LOGGER.error(err);
-                        return {success: false}
-                    });
+                if(!userData) return $.call({"!storage_createUser" : [{
+                    id : userID, 
+                    email : arg.email, 
+                    firstName : awsRes.attributes["given_name"],
+                    lastName : awsRes.attributes["family_name"]
+                }]}).then(r=>{                    
                     return {success : true}
-                });                
-                
+                }).catch(err=>{
+                    LOGGER.error(err);
+                    return {success: false}
+                });
+                return {success : true}
             });
         }).catch(err=>{
             if(err.code == "UserNotConfirmedException") {
@@ -122,41 +112,30 @@ module.exports = {
         var profile = this.scope.session.getVar("currentProfile"),
             local = this.scope['locale'];
         if(!profile) return {error: "not_authorized"};
-        if(!profile.roles) return [];
-        var permissionsNums  = [];
-        profile.roles.forEach(role=>{
-            permissionsNums = permissionsNums.concat(dataUtils.decomposePow2(role.permissions));
-        });
-        permissionsNums = permissionsNums.filter((el, key, array)=>key == array.indexOf(el));
-        var where = permissionsNums.map((el, key)=>"num = $"+(key+1));
-        return STORAGE.get({
-            query : "select name, route from "+scheme+".permissions where "+where.join(" or "),
-            params : permissionsNums
-        }).then(permissions=>{
-            var structurred = [],
-                processed = {};
-            permissions.forEach(el=>{
-                if(~el.name.indexOf(".")){
-                    let splitName = el.name.split("."),
-                        structuredElement = {
-                            name : splitName[1], 
-                            route : el.route,
-                            displayName : "msg(profile_"+splitName[1]+")"
-                        };
-                    if(processed[splitName[0]] === undefined){
-                        structurred.push({
-                            topicName : "msg(profile_"+splitName[0]+")",
-                            elements : [structuredElement]
-                        });
-                        processed[splitName[0]] = structurred.length-1;
-                    }
-                    else {
-                        structurred[processed[splitName[0]]].elements.push(structuredElement);
-                    }
+        if(!profile.permissions) return [];
+        var structurred = [],
+        processed = {};
+        profile.permissions.forEach(el=>{
+            if(~el.name.indexOf(".")){
+                let splitName = el.name.split("."),
+                    structuredElement = {
+                        name : splitName[1], 
+                        route : el.route,
+                        displayName : "msg(profile_"+splitName[1]+")"
+                    };
+                if(processed[splitName[0]] === undefined){
+                    structurred.push({
+                        topicName : "msg(profile_"+splitName[0]+")",
+                        elements : [structuredElement]
+                    });
+                    processed[splitName[0]] = structurred.length-1;
                 }
-            });
-            return  require(APP_ROOT+"/modules/app")('configUtil').localizeObj(structurred, local);
+                else {
+                    structurred[processed[splitName[0]]].elements.push(structuredElement);
+                }
+            }
         });
+        return  require(APP_ROOT+"/modules/app")('configUtil').localizeObj(structurred, local);
     },
     isAuthorized(){
         return !!this.scope.session.getVar("currentProfile");
@@ -172,5 +151,8 @@ module.exports = {
         ]).then((r)=>{
             return {success : true}
         });
+    },
+    getSID() {
+        return this.scope.session.getSID();
     }
 }

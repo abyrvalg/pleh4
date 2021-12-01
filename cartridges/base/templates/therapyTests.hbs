@@ -1,0 +1,52 @@
+<head>
+	<link rel="stylesheet" href="/css/style.css">
+    <script src="/js/therapyTests.js"></script>
+</head>
+{{@async head() /}}
+<div id="test_table">
+    <div class="table_head">
+        <div class="table_cell">Имя</div> 
+        <div class="table_cell">Описание</div> 
+    </div>
+     {{@each(it)=>test}}
+    <div>
+        <div class="table_cell name">{{test.name}}</div>
+        <div class="table_cell details">{{test.details}}</div>
+    </div>
+    {{/each}}
+    <input type="button" class="new_test" value="Новый"/> 
+    <form action="/data" class="new_client_form hidden">
+        <div class="test_head">
+        <input class="test_name_input" placeholder="Названтие теста" name="name" value=""/>
+        <textarea placeholder="Описание" class="test_description_input" name="details"></textarea>
+        </div>
+        <div class="js-test_questions"></div>
+        <input type="button" class="new_question" value="добавить вопрос"/> 
+        <div class="transcripts_block">
+            <div class="transcripts_list hidden"></div>
+            <input type="button" class="new_transcript" value="добавить интерпритацию"/>
+        </div>
+        <input type="button" class="save" value="Сохранить"/> 
+    </form>
+</div>
+
+<script type="text/template" id="test_new_question">
+    <div class="test_question_container">
+        <input class="js-test_question" placeholder="вопрос"/>
+        <input type="button" class="js-new_question_option" value="добавить вариант"/>
+        <div class="js-test_questions_options"></div>
+    </div>
+</script>
+<script type="text/template" id="new_question_option">
+    <div class="test_questions_options_container">
+        <input class="js-test_question_option_text" placeholder="вариант ответа"/>
+        <input class="js-test_question_option_points" type="number" placeholder="бал"/>
+    </div>
+</script>
+
+<script type="text/template" id="test_new_transcript">
+    <div class="test_transcript_container">
+        <input class="js-test_transcript" placeholder="Описание"/>
+        <input class="js-test_transcript_frame" placeholder="Диапазон"/>
+    </div>
+</script>

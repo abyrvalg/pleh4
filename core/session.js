@@ -2,7 +2,7 @@ const CONFIG = require(APP_ROOT+"/modules/app")('config');
 const LOGGER = require(APP_ROOT+"/modules/app")('logger');
 // Depending on config, if storage is set to memory then new local session storage object is created
 // Else then this sets to redis session storage
-const SESSION_STORAGE_CLIENT = CONFIG.sessionStorage != 'memory' ? require('redis').createClient(process.env.REDISTOGO_URL) : (()=>{
+const SESSION_STORAGE_CLIENT = process.env.sessionStorage != 'memory' ? require('redis').createClient(process.env.REDISTOGO_URL) : (()=>{
 	var sessionStorage = {};
 	return{
 		set(key, val, cb){
@@ -51,9 +51,33 @@ function getSid(length) {
 }
 
 var ensureMethods = {
-	auth(session){
+	auth(session) {
 		return !!session.getVar("currentProfile");
-	}	
+	},
+	hasPermission (session, permission) {
+		var profile = session.getVar("currentProfile");
+		if(!profile) return false;
+		for (let i = 0; i < profile.permissions.length; i++) {
+			if(profile.permissions[i].name == permission) {
+				return true;
+			}
+		}
+		return false
+	},
+	hasRole(session, roles) {
+		var profile = session.getVar("currentProfile");
+		roles = roles && roles.split("|");
+		if(!profile) return false;
+		for (let i = 0; i<roles.length; i++) {
+			let role = roles[i];
+			for (let j = 0; j < profile.roles.length; j++) { 
+				if(role = profile.roles[j]) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }
 class Session {
 	constructor(sid, obj){
@@ -79,7 +103,8 @@ class Session {
 	ensure(params){
 		var params = typeof params == "string" ? [params] : params;
 		for(let key in params){
-			if(!ensureMethods[params[key]](this)){
+			let methodNameParams = params[key].split(":");
+			if(!ensureMethods[methodNameParams[0]](this, methodNameParams.length > 1 ? methodNameParams[1] : null)){
 				return false;
 			}
 		}
@@ -100,11 +125,15 @@ class Session {
 			}
 		});		
 	}
+	getSID(){
+		return this.sid;
+	}
 }
 
 module.exports = {
 	check(req, res, next){
-		if(req.cookies && req.cookies['sid']){
+		var sid = req.cookies && req.cookies['sid'] || (req.headers.authorization && req.headers.authorization.match(/^Bearer (\w+)$/)[1]);
+		if(sid){
 			SESSION_STORAGE_CLIENT.get('session_'+req.cookies['sid'], (err, data)=>{
 				if(err){
 					LOGGER.error("Error during gettitng session");
@@ -124,7 +153,7 @@ module.exports = {
 	},
 	// Transforms cookie
 	getSID(req){
-		return req && req.cookies && req.cookies['sid'];
+		return req && (req.cookies && req.cookies['sid'] || req.headers.Authorization);
 	},
 	// Base input of module
 	// Returns promise with session got from the storage or

@@ -217,16 +217,11 @@ module.exports = {
 
 				}
 				return therapists;
-			}).catch(err=>{
-				console.log(err);
-			})
+			});
 		}
 	},
 	updateAppointment(query, transaction){
 		if(!this.scope.isServer){
-			return {success: false, error: "not_available"}
-		}
-		if(!this.scope.session.ensure("auth")){
 			return {success: false, error: "not_available"}
 		}
         var setFields = [],
@@ -252,7 +247,7 @@ module.exports = {
 			return {success: false, error: "not_available"}
 		} 
 		return STORAGE.get({
-			query : "insert into "+scheme+".sessions (id, appointment_id, price_amount, status, date) select (select $1), a.id, price, $2, date from "+scheme+".appointments as a left join "+scheme+".users as u on u.id = a.therapist where a.id = $3",
+			query : "insert into "+scheme+".sessions (id, appointment, price_amount, status, date) select (select $1), a.id, price, $2, date from "+scheme+".appointments as a left join "+scheme+".users as u on u.id = a.therapist where a.id = $3",
 			params : [dataUtils.getUID(32), 0, query.appointmentID]
 		}, transaction);
 	},
@@ -278,7 +273,7 @@ module.exports = {
 		}
 		return STORAGE.get({
 			query : "select id, first_name, last_name, tg_id from "+scheme+".users \
-				where cast(FLOOR(roles/(select num from roles where "+where.join(" "+(andOr || "OR")+" ")+")) as integer) % 2 <> 0",
+				where cast(FLOOR(roles/(select num from "+scheme+".roles where "+where.join(" "+(andOr || "OR")+" ")+")) as integer) % 2 <> 0",
 			params : params
 		})
 	},
@@ -550,6 +545,385 @@ module.exports = {
 			}).then(r=>{
 				return {success : true, msg : lines.length+" therapists has been created"}
 			});
+		});
+	},
+	getUserData(params) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
+		var queryParams = [],
+			where,
+			fields = [],
+			joins = [],
+			joinedTables = [];
+		if(params.id) {
+			queryParams.push(params.id);
+			where = 'u.id = $1';
+		} else if(params.email) {
+			queryParams.push(params.email);
+			where = 'u.email = $1';
+		};
+		params.fields && params.fields.forEach(el=>{
+			if(typeof el == 'string') {
+				fields.push('u.'+dataUtils.cammelCaseToUnderscore(el))
+			} else {typeof el == 'object'}
+			Object.keys(el).forEach(key=>{
+				if(key == 'roles' || key == 'permissions') {
+					if (!~joinedTables.indexOf('roles')) {
+						joins.push('left join '+scheme+'.roles as r on cast (FLOOR(u.roles/r.num) as integer) % 2 <> 0');
+						joinedTables.push('roles');
+					}
+					if(key == 'permissions' && !~joinedTables.indexOf('permissions')) {
+						joins.push('left join '+scheme+'.permissions as p on cast (FLOOR(r.permissions/p.num) as integer) % 2 <> 0');
+						joinedTables.push('permissions');
+					}
+					el[key].forEach(el2=>{
+						fields.push(key[0]+'.'+dataUtils.cammelCaseToUnderscore(el2)+' as '+key+"__"+el2);
+					});
+				}
+			})
+		});
+		return STORAGE.get({
+			query : "select "+fields.join(', ')+" from "+scheme+".users as u "+joins.join(' ')+" where "+where, 
+			params : queryParams
+		}).then(resp=>{
+			var res = {},
+				json = {};
+			resp.forEach(el=>{
+				let rows = {};
+				Object.keys(el).forEach(el2=>{
+					let el2Arr = el2.split("__");
+					if(el2Arr.length >1){
+						rows[el2Arr[0]] = rows[el2Arr[0]] || {};
+						rows[el2Arr[0]][el2Arr[1]] = el[el2];
+					} else {
+						res[el2] = el[el2];
+					}
+				});
+				Object.keys(rows).forEach(key=>{
+					json[key] = json[key] || [];
+					json[key].push(JSON.stringify(rows[key]));
+				})
+			});
+			Object.keys(json).forEach(key=>{
+				res[key] = json[key].filter((el, index, self)=>self.indexOf(el) === index).map(el=>JSON.parse(el));
+			});
+			return res;
+		});
+	},
+	createUser(params) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
+		return STORAGE.get({
+			query : "insert into "+scheme+".users (id, email, cognito_confirmed, roles, first_name, last_name) values ($1, $2, $3, $4, $5, $6)",
+			params : [params.id, params.email, true, 0, params.firstName, params.lastName]
+		})
+	},
+	createTherapyTest(data, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
+		var UUID = dataUtils.getUID(32);
+		return STORAGE.get({
+			query : "insert into "+scheme+".tests (id, name, details, published) values ($1, $2, $3, $4)",
+			params : [UUID, data.test.name, data.test.description, true]
+		}, transaction).then(r=>{
+			return {
+				id : UUID,
+				transactionID : r.transaction,
+				success : true
+			}
+		});
+	},
+	createTherapyTestQuestions(data, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		if(!data || !data.questions) {
+			return {success : false, error: "noDataProvided"}
+		}
+		var values =[]
+			params = [data.testID, 1],
+			options = [];
+		
+		data.questions.forEach((question, index)=>{
+			var UUID = dataUtils.getUID(32),
+				row = [];
+			params.push(UUID);
+			row.push("$"+params.length);
+			params.push(question.text);
+			row.push("$"+params.length);
+			params.push(index);
+			row.push("$"+params.length);
+			values.push("($1, $2, "+row.join(", ")+")");
+			options.push({
+				questionID : UUID,
+				options : question.options
+			});
+		});
+		return STORAGE.get({
+			query : "insert into "+scheme+".test_questions (test, type, id, val, order_num) values "+values,
+			params : params
+		}, transaction).then(r=>{
+			return {
+				transactionID : r.transaction.id,
+				options : options,
+				success : true
+			}
+		});
+	},
+	createTherapyTestQuestionOptions(options, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
+		if(!options) {
+			return {success : false, error: "noDataProvided"}
+		}
+		var params = [],
+			values = [];
+		options.forEach(option=>{
+			var rowInitial = [];
+			params.push(option.questionID);
+			rowInitial.push("$"+params.length);
+			option.options.forEach((op, index)=>{
+				var UUID = dataUtils.getUID(32),
+					row = rowInitial.join(",").split(",");
+				params.push(UUID);
+				row.push("$"+params.length);
+				params.push(op.text);
+				row.push("$"+params.length);
+				params.push(op.points);
+				row.push("$"+params.length);
+				params.push(index);
+				row.push("$"+params.length);
+				values.push("("+row.join(", ")+")");		
+			});
+		});
+		return STORAGE.get({
+			query : "insert into "+scheme+".test_questions_options (question, id, val, points, order_num) values "+values,
+			params : params
+		}, transaction).then(r=>{
+			return {
+				transactionID : r.transaction,
+				success : true
+			}
+		});
+	},
+	createTherapyTestTranscripts(data, transaction){
+		var params = [data.testID],
+			values = [];
+		if(!data || !data.transcripts || !data.testID) {
+			return {success : false, error: "noDataProvided"}
+		}
+		data.transcripts.forEach(transcript=>{
+			var row = ["$1"];
+			params.push(transcript.frame);
+			row.push("$"+params.length);
+			params.push(transcript.text);
+			row.push("$"+params.length);
+			values.push("("+row.join(",")+")");
+		});
+		return STORAGE.get({
+			query : "insert into "+scheme+".test_transcripts (test, frame, details) values "+values.join(","),
+			params : params
+		}, transaction).then(r=>{
+			return {success : r.success}
+		});
+	},
+	localize(data, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		var params = [data.locale, 1],
+			values = [];
+		function loop(obj){
+			Object.keys(obj).forEach(key=>{
+				if(typeof obj[key] == "object") return loop(obj[key]);
+				if(~["text", "name", "description"].indexOf(key)) {
+					let UUID = dataUtils.getUID(32),
+						row = ["$1", "$2"];
+					params.push(UUID);
+					row.push("$"+params.length);
+					params.push(obj[key]);
+					row.push("$"+params.length);
+					values.push("("+row.join(",")+")");
+					obj[key] = UUID;					
+				}
+			})
+			return obj;
+		}
+		obj = loop(data.obj);
+		return STORAGE.get({
+			query : "insert into "+scheme+".local_strings (locale, entries, key, val) values "+values.join(","),
+			params : params
+		}, transaction).then(r=>{
+			return {
+				transactionID : r.transaction,
+				test : obj,
+				success : true
+			}
+		});
+	},
+	getLocalizedTherapyTests(data){
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		return STORAGE.get({
+			query : "select t.id, lsn.val as name, lsd.val as details from "+scheme+".tests as t \
+				left join "+scheme+".local_strings lsn on lsn.key = t.name and lsn.locale = $1 \
+				left join "+scheme+".local_strings lsd on lsd.key = t.details and lsd.locale = $1",
+			params : [data.locale]
+		});
+	},
+	getTestDetails (data) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		
+		var params = [data.prescription]
+		return STORAGE.get({
+			query : "select t.id as testid, t.name as testname, tq.id as q_id, tq.val as q_val, too.id as o_id, too.val as o_val \
+				from "+scheme+".test_prescriptions as tp \
+				left join "+scheme+".tests as t on t.id = tp.test \
+				left join "+scheme+".test_questions as tq on tq.test = t.id \
+				left join "+scheme+".test_questions_options as too on too.question = tq.id \
+				where tp.id = $1 order by tq.order_num, too.order_num",
+			params : params
+		}).then(r=>{
+			if (!r || !r.length) {
+				return {success : false, error : "no_data_found"}
+			}
+			var result = {
+				id : r[0].testid,
+				name : r[0].testname,
+				questions : []
+			};
+			r.forEach(el=>{
+				if(!result.questions.length || result.questions[result.questions.length-1].id != el.q_id) {
+					result.questions.push({
+						id : el.q_id,
+						val : el.q_val,
+						options : []
+					});
+				}
+				result.questions[result.questions.length-1].options.push({
+					id : el.o_id,
+					val: el.o_val
+				});
+			});
+			return result;
+		});
+	},
+	getLocalized(data) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		if(!data || !data.obj) {
+			return {success : false, error: "no_data_provided"}
+		}
+		var where = [],
+			params = [data.locale || this.scope.locale]
+		function loop(obj){
+			Object.keys(obj).forEach(key=>{
+				if(typeof obj[key] == 'object') return loop(obj[key]);
+				if(~["val", "name"].indexOf(key)) {
+					params.push(obj[key]);
+					where.push("$"+params.length);
+				}
+			});
+		}
+		loop(data.obj);
+		return STORAGE.get({
+			query : "select key, val from "+scheme+".local_strings where locale = $1 and key in ("+where.join(", ")+")",
+			params : params
+		}).then(r=>{
+			if(!r || !r.length) {
+				return {success : false, error : "no_data_found"}
+			}
+			var lacalizationMap = {};
+			r.forEach(el=> {
+				lacalizationMap[el.key] = el.val;
+			});
+			function loop(obj) {
+				Object.keys(obj).forEach(key=>{
+					if(typeof obj[key] == 'object') return loop(obj[key]);
+					if(~["val", "name"].indexOf(key)) {
+						obj[key] = lacalizationMap[obj[key]]
+					}
+				});
+				return obj;
+			}
+			return loop(data.obj);
+		});
+	},
+	getTestPrescriptions(data) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		var where = [],
+			params = [];
+		Object.keys(data.where).forEach(key=>{
+			where.push(key+(data.where[key] === null ? " is null" : " = "+" $"+(params.push(data.where[key]), params.length)));
+		});
+		where = where.join(" and ");
+		return STORAGE.get({
+			query : "select "+data.fields.join(",")+" from "+scheme+".test_prescriptions where "+where,
+			params : params
+		});
+	},
+	getMyClientCard(data) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		var params = [data.userID, data.clientID];
+		return STORAGE.get({
+			query : "select c.id, c.name, tp.id as prescription_id, tp.test, tp.prescription_date, tp.complete_date, tp.transcript, tp.result \
+				from "+scheme+".clients as c \
+				left join "+scheme+".therapists as th on th.id = c.therapist \
+				left join "+scheme+".users as u on th.user_id = u.id \
+				left join "+scheme+".test_prescriptions as tp on tp.client = c.id \
+				where u.id = $1 and c.id=$2",
+			params : params
+		}).then(r=>{
+			if(!r || !r.length){
+				return null;
+			}
+			var card = {
+					id : r[0].id,
+					name : r[0].name,
+					prescriptions : []
+				};
+			r.forEach(el=>{
+				if(el.prescription_id) {
+					card.prescriptions.push({
+						id : el.prescription_id,
+						prescriptionDate : el.prescription_date,
+						completeDate : el.complete_date,
+						testID : el.test,
+						result : el.result
+					});
+				}
+			});
+			return card;
+		});
+	}, 
+	prescriptTest(data) {
+		return STORAGE.get({
+			query : "insert into "+scheme+".test_prescriptions (id, client, test, prescription_date) values($1, $2, $3, now())",
+			params : [dataUtils.getUID(32), data.clientID, data.testID]
+		}).then(r=>{
+			return {success : true}
+		});
+	},
+	isMyClient(data) {
+		return STORAGE.get({
+			query : "select c.id from "+scheme+".clients as c \
+				left join "+scheme+".therapists as t on t.id = c.therapist \
+				left join "+scheme+".users as u on u.id = t.user_id where u.id = $1 and c.id =$2",
+			params : [data.userID, data.clientID]
+		}).then(r=>{
+			return !!r.length;
 		});
 	}
 }

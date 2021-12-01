@@ -16,6 +16,9 @@ const dataUtils = {
     },
     isElementinBinSet(el, set){
         return Math.floor(set/el) % 2;
+    },
+    cammelCaseToUnderscore(str) {
+        return str.replace(/[A-Z]/g, m=>"_"+m.toLowerCase())
     }
 }
 module.exports = dataUtils;
