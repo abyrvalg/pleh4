@@ -17,9 +17,10 @@ amplify.Amplify.configure({
 module.exports = {
     register(arg){
         var session = this.scope.session;
-        return this.scope.$.call({fields : [id], where : {
-            email : arguments.email, cognito_confiemed : true
-        }}).then(user=>{
+        return STORAGE.get({
+            query : "select id from "+scheme+".users where email = $1 and cognito_confirmed = $2", 
+            params : [arg.email, true]
+        }).then(user=>{
             if(!user || !user.length){
                 return amplify.Auth.signUp({
                     username:  arg.email,
