@@ -15,10 +15,8 @@ amplify.Amplify.configure({
 module.exports = {
     register(arg){
         var session = this.scope.session;
-        return this.scope.$.call({fields : [id], where : {
-            email : arguments.email, cognito_confiemed : true
-        }}).then(user=>{
-            if(!user || !user.length){
+        return this.scope.$.call({"!storage_getUserData" : [{fields : ["id"], email : arg.email}]}).then(user=>{
+            if(!user || !user.id){
                 return amplify.Auth.signUp({
                     username:  arg.email,
                     password : arg.password,
@@ -116,7 +114,7 @@ module.exports = {
         var structurred = [],
         processed = {};
         profile.permissions.forEach(el=>{
-            if(~el.name.indexOf(".")){
+            if(el.name && ~el.name.indexOf(".")){
                 let splitName = el.name.split("."),
                     structuredElement = {
                         name : splitName[1], 

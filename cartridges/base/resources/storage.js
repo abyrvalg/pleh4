@@ -826,7 +826,7 @@ module.exports = {
 			params = [data.locale || this.scope.locale]
 		function loop(obj){
 			Object.keys(obj).forEach(key=>{
-				if(typeof obj[key] == 'object') return loop(obj[key]);
+				if(obj[key] && typeof obj[key] == 'object') return loop(obj[key]);
 				if(~["val", "name"].indexOf(key)) {
 					params.push(obj[key]);
 					where.push("$"+params.length);
@@ -847,7 +847,7 @@ module.exports = {
 			});
 			function loop(obj) {
 				Object.keys(obj).forEach(key=>{
-					if(typeof obj[key] == 'object') return loop(obj[key]);
+					if(obj[key] && typeof obj[key] == 'object') return loop(obj[key]);
 					if(~["val", "name"].indexOf(key)) {
 						obj[key] = lacalizationMap[obj[key]]
 					}
