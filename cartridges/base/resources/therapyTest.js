@@ -63,5 +63,13 @@ module.exports = {
             "storage_getTestDetails>test" : [{prescription : data}]},
             {"!storage_getLocalized" : [{obj : "_test"}]
         }]);
+    },
+    getMyPrescriptions () {
+        var profile = this.scope.session.getVar("currentProfile"),
+            userID = (profile && profile.id);
+        return this.scope.$.call([
+            {"storage_getPrescriptions>prescriptions" : [{client : {userID : userID}}]},
+            {"!storage_getLocalized" : [{obj : "_prescriptions"}]}
+        ])
     }
 };

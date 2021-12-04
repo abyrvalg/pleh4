@@ -826,7 +826,7 @@ module.exports = {
 			params = [data.locale || this.scope.locale]
 		function loop(obj){
 			Object.keys(obj).forEach(key=>{
-				if(typeof obj[key] == 'object') return loop(obj[key]);
+				if(obj[key] && typeof obj[key] == 'object') return loop(obj[key]);
 				if(~["val", "name"].indexOf(key)) {
 					params.push(obj[key]);
 					where.push("$"+params.length);
@@ -847,7 +847,7 @@ module.exports = {
 			});
 			function loop(obj) {
 				Object.keys(obj).forEach(key=>{
-					if(typeof obj[key] == 'object') return loop(obj[key]);
+					if(obj[key] && typeof obj[key] == 'object') return loop(obj[key]);
 					if(~["val", "name"].indexOf(key)) {
 						obj[key] = lacalizationMap[obj[key]]
 					}
@@ -909,6 +909,9 @@ module.exports = {
 		});
 	}, 
 	prescriptTest(data) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
 		return STORAGE.get({
 			query : "insert into "+scheme+".test_prescriptions (id, client, test, prescription_date) values($1, $2, $3, now())",
 			params : [dataUtils.getUID(32), data.clientID, data.testID]
@@ -916,7 +919,26 @@ module.exports = {
 			return {success : true}
 		});
 	},
+	getPrescriptions(data) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		if(!data || !data.client || !data.client.userID) {
+			return {success : false, error : "not_data_provided"}
+		}
+		return STORAGE.get({
+			query : "select p.id, t.name, p.test, p.prescription_date, p.complete_date \
+				from "+scheme+".test_prescriptions as p \
+				left join "+scheme+".tests as t on t.id = p.test \
+				left join "+scheme+".clients as c on c.id = p.client \
+				where c.user_id=$1",
+			params : [data.client.userID]
+		});
+	},
 	isMyClient(data) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
 		return STORAGE.get({
 			query : "select c.id from "+scheme+".clients as c \
 				left join "+scheme+".therapists as t on t.id = c.therapist \
