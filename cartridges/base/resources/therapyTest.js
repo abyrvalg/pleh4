@@ -67,6 +67,11 @@ module.exports = {
     getMyPrescriptions () {
         var profile = this.scope.session.getVar("currentProfile"),
             userID = (profile && profile.id);
+
+        if(!this.scope.session.ensure("auth")){
+            return {success: false, error: "not_available"}
+        }
+        
         return this.scope.$.call([
             {"storage_getPrescriptions>prescriptions" : [{client : {userID : userID}}]},
             {"!storage_getLocalized" : [{obj : "_prescriptions"}]}
