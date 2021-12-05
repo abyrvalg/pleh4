@@ -109,7 +109,7 @@ module.exports = {
     getDashboard(){
         var profile = this.scope.session.getVar("currentProfile"),
             local = this.scope['locale'];
-        if(!profile) return {success : fasle, error: "not_authorized"};
+        if(!profile) return {success : false, error: "not_authorized"};
         if(!profile.permissions) return [];
         var structurred = [],
         processed = {};
