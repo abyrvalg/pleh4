@@ -134,7 +134,7 @@ module.exports = {
 	check(req, res, next){
 		var sid = req.cookies && req.cookies['sid'] || (req.headers.authorization && req.headers.authorization.match(/^Bearer (\w+)$/)[1]);
 		if(sid){
-			SESSION_STORAGE_CLIENT.get('session_'+req.cookies['sid'], (err, data)=>{
+			SESSION_STORAGE_CLIENT.get('session_'+sid, (err, data)=>{				
 				if(err){
 					LOGGER.error("Error during gettitng session");
 					LOGGER.error(err);
