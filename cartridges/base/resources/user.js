@@ -103,13 +103,13 @@ module.exports = {
     },
     getRolesNames(arg) {
         var profile = this.scope.session.getVar("currentProfile");
-        if(!profile) return {error: "not_authorized"}
+        if(!profile) return {succsess : false, error: "not_authorized"}
         return profile.roles.map(role=>role.name);
     },
     getDashboard(){
         var profile = this.scope.session.getVar("currentProfile"),
             local = this.scope['locale'];
-        if(!profile) return {error: "not_authorized"};
+        if(!profile) return {success : fasle, error: "not_authorized"};
         if(!profile.permissions) return [];
         var structurred = [],
         processed = {};
