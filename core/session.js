@@ -134,7 +134,7 @@ module.exports = {
 	check(req, res, next){
 		var sid = req.cookies && req.cookies['sid'] || (req.headers.authorization && req.headers.authorization.match(/^Bearer (\w+)$/)[1]);
 		if(sid){
-			SESSION_STORAGE_CLIENT.get('session_'+sid, (err, data)=>{				
+			SESSION_STORAGE_CLIENT.get('session_'+sid, (err, data)=>{			
 				if(err){
 					LOGGER.error("Error during gettitng session");
 					LOGGER.error(err);
@@ -153,7 +153,7 @@ module.exports = {
 	},
 	// Transforms cookie
 	getSID(req){
-		return req && (req.cookies && req.cookies['sid'] || req.headers.Authorization);
+		return req && (req.cookies && req.cookies['sid'] || (req.headers.Authorization && req.headers.authorization.match(/^Bearer (\w+)$/)[1]));
 	},
 	// Base input of module
 	// Returns promise with session got from the storage or
