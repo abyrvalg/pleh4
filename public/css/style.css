@@ -87,6 +87,9 @@
     display: inline-block;
     width: 340px;
 }
+#appointment_form {
+    padding-top: 2.5em;
+}
 .appointment_table {
     vertical-align: top;
     display: inline-block;
@@ -227,4 +230,7 @@ input::placeholder {color: #000;}
     height:110vw;
     min-width: 300px;
     margin: auto;
+}
+#appointment_form_container {
+    padding-top: 2.5em;
 }
