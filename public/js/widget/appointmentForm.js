@@ -95,6 +95,14 @@
                     separateDialCode : true,
                     initialCountry : "ua"
                 });
+                document.querySelector("#appointment_phone").addEventListener("countrychange", (e)=>{
+                    if(!phoneCode) return;
+                    e.target.value = '';
+                    var newLength = 12 - phoneCode.getSelectedCountryData().dialCode.length;
+                    e.target.setAttribute('minlength', newLength);
+                    e.target.setAttribute('maxlength', newLength);
+                    e.target.dataset.pattern = "^\\d{"+newLength+"}$";
+                });
                 document.getElementById("appointment_submit").addEventListener("click", e=>{
                     e.preventDefault();
                     var inputs = e.target.closest("form").querySelectorAll("input,select"),
