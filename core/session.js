@@ -153,7 +153,7 @@ module.exports = {
 	},
 	// Transforms cookie
 	getSID(req){
-		return req && (req.cookies && req.cookies['sid'] || (req.headers.Authorization && req.headers.authorization.match(/^Bearer (\w+)$/)[1]));
+		return req && (req.cookies && req.cookies['sid'] || (req.headers.authorization && req.headers.authorization.match(/^Bearer (\w+)$/)[1]));
 	},
 	// Base input of module
 	// Returns promise with session got from the storage or
