@@ -46,8 +46,10 @@ module.exports = {
         var $ = this.scope.$;
         return amplify.Auth.signIn(arg.email, arg.password).then(awsRes=>{
             return $.call({"!storage_getUserData" : [{
-                email : arg.email, fields : ['id', 'firstName', 'lastName', 'tgId', {'roles' : ['num', 'name']}, {'permissions' : ['name', 'num', 'route']}]}]
-            }).then(userData=>{
+                email : arg.email,
+                rolesFields : true,
+                fields : ['id', 'firstName', 'lastName', 'tgId', {'roles' : ['num', 'name']}, {'permissions' : ['name', 'num', 'route']}]
+            }]}).then(userData=>{
                 var userID = userData ? userData.id : dataUtils.getUID(32),
                     roles = userData ? userData.roles : [];
                     permissions = userData ? userData.permissions : [];
@@ -152,5 +154,22 @@ module.exports = {
     },
     getSID() {
         return this.scope.session.getSID();
+    },
+    getCurrentClientID(){
+        var session = this.scope.session;
+        if(!session.ensure("auth")){
+            return {success: false, error: "not_available"}
+        }
+        var clientID = session.getVar("clientID");
+        if(clientID) {
+            return Promise.resolve(clientID);
+        }
+        var profile = session.getVar("currentProfile"),
+            userID = profile && profile.id;
+        return this.scope.$.call({"!storage_getClient" : [{
+            fields : ["id"], 
+            userID : userID
+        }]}).then(r=> r && (session.setVar("clientID", r.id), r.id));
+
     }
 }

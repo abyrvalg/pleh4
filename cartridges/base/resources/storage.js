@@ -4,17 +4,25 @@ const dataUtils = require(APP_ROOT+"/modules/app")("utils", "data");
 const scheme = process.env.dbscheme;
 
 function getTherapists(params){
-	var queryParams = []; 
+	var queryParams = [],
+		fileds = params.fields ? JSON.parse(dataUtils.cammelCaseToUnderscore(JSON.stringify(params.fields))) : ["u.id", "first_name", "last_name", "t.rate", "tg_id", "share"],
+		where = [],
+		joins = ["left join "+scheme+".therapists as t on t.user_id = u.id"];
 	if(params.id){
 		queryParams.push(params.id);
-		return STORAGE.get({query : "select u.id, first_name, last_name, rate, tg_id, rate, share from "+scheme+".users as u \
-			left join "+scheme+".therapists on t.user_id = u.id where u.id=$1", params : queryParams});
+		where.push("u.id=$"+queryParams.length);
 	}
 	if(params.tg_id){
 		queryParams.push(params.tg_id);
-		return STORAGE.get({query : "select u.id, first_name, last_name, rate, tg_id, rate, share from "+scheme+".users as u \
-			left join "+scheme+".therapists on t.user_id = u.id where tg_id=$1", params : queryParams});
+		where.push("tg_id=$"+queryParams.length);
 	}
+	if(params.clientID) {
+		queryParams.push(params.clientID);
+		where.push("c.id=$"+queryParams.length);
+		joins.push("left join "+scheme+".clients as c on c.therapist = t.id");
+	}
+	return STORAGE.get({query : "select "+fileds.join(", ")+" from "+scheme+".users as u "+joins.join(" ")+" \
+		where "+where.join(" and "), params : queryParams});
 }
 module.exports = {
 	therapists(params) {
@@ -29,9 +37,18 @@ module.exports = {
 	therapist(params) {
 		if(!this.scope.isServer){
 			return {success: false, error: "not_available"}
-		} 
+		}
+		var data; 
 		var profile = this.scope.session.getVar("currentProfile");
-		return getTherapists({id:profile ? profile.id : params}).then(r=>r[0]);
+		if(params && typeof params == "string") {
+			data = {id: params};
+		} else if(params) {
+			data = {clientID: params.clientID};
+		} else {
+			data = {id : profile.id}
+		}
+		data.fields = params.fields;
+		return getTherapists(data).then(r=> r && r[0]);
 	},
 	therapistByTgID(tg_id) {
 		if(!this.scope.isServer){
@@ -494,13 +511,23 @@ module.exports = {
 			params : [params.userID, 1]
 		});
 	},
-	getClient(params) {
+	getClient(data) {
 		if(!this.scope.isServer){
 			return {success: false, error: "not_available"}
-		} 
+		}
+		var params = [1],
+			where = [];
+		if(data.id) {
+			params.push(data.id);
+			where.push("id = $"+params.length);
+		}
+		if(data.userID) {
+			params.push(data.userID);
+			where.push("user_id = $"+params.length);
+		}
 		return STORAGE.get({
-			query : "select "+params.fields.join(",")+" from "+scheme+".clients where id = $1 and status = $2",
-			params : [params.id, 1]
+			query : "select "+data.fields.join(",")+" from "+scheme+".clients where status = $1 and "+where.join(" and "),
+			params : params
 		}).then(r=>r && r[0]);
 	},
 	addClient(params) {
@@ -933,6 +960,17 @@ module.exports = {
 				left join "+scheme+".clients as c on c.id = p.client \
 				where c.user_id=$1",
 			params : [data.client.userID]
+		});
+	},
+	saveTestResult(data) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		return STORAGE.get({
+			query : "insert into "+scheme+".test_results (id, client, test, details) values ($1, $2, $3, $4)",
+			params : [dataUtils.getUID(32), data.clientID, data.testID, data.details]
+		}).then(r=>{
+			return {success : true}
 		});
 	},
 	isMyClient(data) {

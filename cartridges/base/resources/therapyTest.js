@@ -76,5 +76,32 @@ module.exports = {
             {"storage_getPrescriptions>prescriptions" : [{client : {userID : userID}}]},
             {"!storage_getLocalized" : [{obj : "_prescriptions"}]}
         ])
+    },
+    submitTest (data) {
+        if(!this.scope.session.ensure("auth")){
+            return {success: false, error: "not_available"}
+        }
+        var profile = this.scope.session.getVar("currentProfile");
+        return this.scope.$.call([
+            {"?user_getCurrentClientID>clientID" : []},
+            {"storage_saveTestResult>saveResult" : [{
+                clientID : "_clientID",
+                testID : data.testID,
+                details : JSON.stringify(data.answers)
+            }]},
+            {"?storage_therapist>therapist" : [{
+                clientID: "_clientID", 
+                fields : ["tgId"]
+            }]},
+            {"msg_send" : [{
+                "tmplName": "mails/testIsCompleted",
+                "contenxts" : [{
+                    clientName : profile.first_name,
+                    tgid : "_therapist.tg_id"
+                }]
+            }]}
+        ]).then(r=>{
+            return {success : r && r.saveResult && r.saveResult.success}
+        });
     }
 };

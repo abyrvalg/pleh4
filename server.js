@@ -85,7 +85,6 @@ function start() {
 				$.scope.$.scope.$ = $.scope.$;
 				$.call(query).then((result)=>{
 					session.updatePresistance().then(()=>res.send(result)).catch(err=>{
-						console.log("fdfdsfdsf");
 						LOGGER.error(err);
 						return {success : false}
 					});
