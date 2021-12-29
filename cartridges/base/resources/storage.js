@@ -950,28 +950,57 @@ module.exports = {
 		if(!this.scope.isServer){
 			return {success: false, error: "not_available"}
 		}
+		var where = [],
+			params = [];
 		if(!data || !data.client || !data.client.userID) {
 			return {success : false, error : "not_data_provided"}
+		}
+		else {
+			params.push(data.client.userID);
+			where .push("c.user_id = $"+params.length);
+		}
+		if(data.status == "notCompleted") {
+			where.push("result is null");
 		}
 		return STORAGE.get({
 			query : "select p.id, t.name, p.test, p.prescription_date, p.complete_date \
 				from "+scheme+".test_prescriptions as p \
 				left join "+scheme+".tests as t on t.id = p.test \
 				left join "+scheme+".clients as c on c.id = p.client \
-				where c.user_id=$1",
-			params : [data.client.userID]
+				where "+where.join(" and "),
+			params : params
 		});
 	},
-	saveTestResult(data) {
+	saveTestResult(data, transaction) {
 		if(!this.scope.isServer){
 			return {success: false, error: "not_available"}
 		}
+		var resultID = dataUtils.getUID(32);
 		return STORAGE.get({
 			query : "insert into "+scheme+".test_results (id, client, test, details) values ($1, $2, $3, $4)",
-			params : [dataUtils.getUID(32), data.clientID, data.testID, data.details]
-		}).then(r=>{
-			return {success : true}
+			params : [resultID, data.clientID, data.testID, data.details]
+		}, transaction).then(r=>{
+			return {
+				success : true,
+				resultID : resultID,
+				transaction : r.transaction
+			}
 		});
+	},
+	updatePrescription(data, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		var params = [data.id],
+			updates = [];
+		Object.keys(data.fields).forEach(key=>{
+			params.push(data.fields[key]);
+			updates.push(dataUtils.cammelCaseToUnderscore(key) + "=$"+params.length);
+		});
+		return STORAGE.get({
+			query : "update "+scheme+".test_prescriptions set "+updates.join(", ")+" where id=$1",
+			params : params
+		}, transaction)
 	},
 	isMyClient(data) {
 		if(!this.scope.isServer){

@@ -64,7 +64,7 @@ module.exports = {
             {"!storage_getLocalized" : [{obj : "_test"}]
         }]);
     },
-    getMyPrescriptions () {
+    getMyPrescriptions (data) {
         var profile = this.scope.session.getVar("currentProfile"),
             userID = (profile && profile.id);
 
@@ -73,7 +73,7 @@ module.exports = {
         }
         
         return this.scope.$.call([
-            {"storage_getPrescriptions>prescriptions" : [{client : {userID : userID}}]},
+            {"storage_getPrescriptions>prescriptions" : [{client : {userID : userID}, status : (data && data.status)}]},
             {"!storage_getLocalized" : [{obj : "_prescriptions"}]}
         ])
     },
@@ -85,10 +85,19 @@ module.exports = {
         return this.scope.$.call([
             {"?user_getCurrentClientID>clientID" : []},
             {"storage_saveTestResult>saveResult" : [{
-                clientID : "_clientID",
-                testID : data.testID,
-                details : JSON.stringify(data.answers)
-            }]},
+                    clientID : "_clientID",
+                    testID : data.testID,
+                    details : JSON.stringify(data.answers)
+                }, 
+                data.prescriptionID ? {id : -1} : null]
+            },
+            data.prescriptionID  ? {"storage_updatePrescription" : [{
+                id : data.prescriptionID,
+                fields : {
+                    result : "_saveResult.resultID",
+                    completeDate : new Date()
+                }
+            }, {id : "_saveResult.transaction.id", commit : true}]} : {},
             {"?storage_therapist>therapist" : [{
                 clientID: "_clientID", 
                 fields : ["tgId"]
