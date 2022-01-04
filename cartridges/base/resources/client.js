@@ -40,9 +40,9 @@ module.exports = {
                     if(test.id == el.testID) {
                         el.name = test.name;
                         el.details = test.details;
-                        el.date = el.date.getDate()+"/"+(el.date.getMonth()+1)+"/"+(el.date.getFullYear())
                     }
                 });
+                el.date = el.date.getDate()+"/"+(el.date.getMonth()+1)+"/"+(el.date.getFullYear())
             });
             r.card.results.map(el=>{
                 r.tests.forEach(test=>{
@@ -51,6 +51,7 @@ module.exports = {
                         el.testDetails = test.details;
                     }
                 });
+                el.date = el.date.getDate()+"/"+(el.date.getMonth()+1)+"/"+(el.date.getFullYear())
             });
             return r;
         });
