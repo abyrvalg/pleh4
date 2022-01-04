@@ -1,5 +1,5 @@
 window.onload = function(){
-    document.getElementById("clients_table").addEventListener('click', (e)=>{
+    document.querySelector(".clients_primory").addEventListener('click', (e)=>{
         if(e.target.classList.contains('new_client')){
             document.querySelector('form.new_client_form').classList.remove('hidden');
             return;
@@ -54,7 +54,7 @@ window.onload = function(){
                 'Content-Type': 'application/json;charset=utf-8'
             },
             body:JSON.stringify({"!therapyTest_prescript" : [{
-                clientID : document.getElementById("clients_table").dataset.clientid,
+                clientID : document.querySelector(".clients_primory").dataset.clientid,
                 testID : document.querySelector(".prescript_test_select").value
             }]})
         }).then(resp=>{

@@ -745,14 +745,17 @@ module.exports = {
 		}
 		data.transcripts.forEach(transcript=>{
 			var row = ["$1"];
-			params.push(transcript.frame);
-			row.push("$"+params.length);
 			params.push(transcript.text);
+			row.push("$"+params.length);
+			var [from, to] = transcript.frame.split("-");
+			params.push(from);
+			row.push("$"+params.length);
+			params.push(to);
 			row.push("$"+params.length);
 			values.push("("+row.join(",")+")");
 		});
 		return STORAGE.get({
-			query : "insert into "+scheme+".test_transcripts (test, frame, details) values "+values.join(","),
+			query : "insert into "+scheme+".test_transcripts (test, details, \"from\", \"to\" ) values "+values.join(","),
 			params : params
 		}, transaction).then(r=>{
 			return {success : r.success}
@@ -903,15 +906,16 @@ module.exports = {
 		if(!this.scope.isServer){
 			return {success: false, error: "not_available"}
 		}
-		var params = [data.userID, data.clientID];
 		return STORAGE.get({
-			query : "select c.id, c.name, tp.id as prescription_id, tp.test, tp.prescription_date, tp.complete_date, tp.transcript, tp.result \
+			query : "select c.id, c.name, tp.id as prescription_id, tp.test, tp.prescription_date, tp.result, tr.id as result_id, \
+				tr.details as result_details, tr.test as result_test, tr.date as result_date \
 				from "+scheme+".clients as c \
 				left join "+scheme+".therapists as th on th.id = c.therapist \
 				left join "+scheme+".users as u on th.user_id = u.id \
+				left join "+scheme+".test_results as tr on tr.client = $2 \
 				left join "+scheme+".test_prescriptions as tp on tp.client = c.id \
 				where u.id = $1 and c.id=$2",
-			params : params
+			params : [data.userID, data.clientID]
 		}).then(r=>{
 			if(!r || !r.length){
 				return null;
@@ -919,17 +923,37 @@ module.exports = {
 			var card = {
 					id : r[0].id,
 					name : r[0].name,
-					prescriptions : []
-				};
+					prescriptions : [],
+					results : []
+				},
+				processedPrescriptionIDs = [],
+				processedResultIDs = [];
 			r.forEach(el=>{
 				if(el.prescription_id) {
-					card.prescriptions.push({
-						id : el.prescription_id,
-						prescriptionDate : el.prescription_date,
-						completeDate : el.complete_date,
-						testID : el.test,
-						result : el.result
-					});
+					let index = processedPrescriptionIDs.indexOf(el.prescription_id);
+					if(!~index) {
+						card.prescriptions.push({
+							id : el.prescription_id,
+							date : el.prescription_date,
+							testID : el.test,
+							results : [el.result]
+						});
+						processedPrescriptionIDs.push(el.prescription_id);
+					}
+					else {
+						!~card.prescriptions[index].results.indexOf(el.result) && card.prescriptions[index].results.push(el.result);
+					}
+				}
+				if(el.result_id) {
+					if(!~processedResultIDs.indexOf(el.result_id)) {
+						card.results.push({
+							id : el.result_id,
+							date : el.result_date,
+							details : JSON.parse(el.result_details),
+							testID : el.result_test
+						});
+						processedResultIDs.push(el.result_id);
+					}
 				}
 			});
 			return card;

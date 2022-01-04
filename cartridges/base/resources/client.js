@@ -38,8 +38,17 @@ module.exports = {
             r.card.prescriptions.map(el=>{
                 r.tests.forEach(test=>{
                     if(test.id == el.testID) {
-                        el.name = test.name,
-                        el.details = test.details
+                        el.name = test.name;
+                        el.details = test.details;
+                        el.date = el.date.getDate()+"/"+(el.date.getMonth()+1)+"/"+(el.date.getFullYear())
+                    }
+                });
+            });
+            r.card.results.map(el=>{
+                r.tests.forEach(test=>{
+                    if(test.id == el.testID) {
+                        el.name = test.name;
+                        el.testDetails = test.details;
                     }
                 });
             });

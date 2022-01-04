@@ -259,3 +259,10 @@ textarea {
 #appointment_form_container {
     padding-top: 2.5em;
 }
+.card-block {
+    width: 350px;
+    display: inline-block;
+    vertical-align: top;
+    border: solid;
+    padding: 5px;
+}

@@ -41,7 +41,7 @@ module.exports = {
             return {success : false, error : "not_data_provided"}
         }
         return this.scope.$.call([{"storage_isMyClient>myClient": [{clientID : data.clientID, userID : this.scope.session.getVar("currentProfile").id}]},
-            {"storage_getTestPrescriptions>notCompletedTest" : [{
+            {"!storage_getTestPrescriptions>notCompletedTest" : [{
                 where : {
                     client : data.clientID,
                     test : data.testID,
