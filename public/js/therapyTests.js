@@ -1,4 +1,5 @@
-window.onload = function(){
+(()=>{
+    var cache = {};
     document.getElementById("test_table").addEventListener('click', (e)=>{
         if(e.target.classList.contains('new_test')){
             document.querySelector('.new_client_form').classList.remove('hidden');
@@ -48,8 +49,32 @@ window.onload = function(){
                 },
                 body: JSON.stringify({"!therapyTest_create" : [newTest]})
             }).then(r=>{
-
+                r.json && r.json().then(json=>{
+                    if(json && json.success){
+                        location.reload();
+                    }
+                });
+            });
+        }
+        if(e.target.classList.contains("edit_test")) {
+            var query = [{"therapyTest_getTestDetails>test" : [{id : e.target.dataset.id}]}];
+            if(!cache.editTestTemplate) {
+                query.push({"base_template>editTestTemplate" : ["parts/editTest"]})
+            }
+            window.liteQL.call(query).then(json=>{
+                if(!cache.editTestTemplate) {
+                    cache.editTestTemplate = json.editTestTemplate;
+                }
+                var content = sqrl.render(cache.editTestTemplate, json.test);
+                var container = document.querySelector("#popup");
+                if(!container) {
+                    let popupElement = document.createElement("div");
+                    popupElement.setAttribute("id", "popup");
+                    document.querySelector("body").appendChild(popupElement);
+                    container = document.querySelector("#popup");
+                }
+                container.innerHTML = content;
             });
         }
     });
-} 
+})()

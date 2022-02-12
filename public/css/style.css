@@ -266,3 +266,13 @@ textarea {
     border: solid;
     padding: 5px;
 }
+#popup {
+    position: absolute;
+    top: 55vh;
+    width: 500px;
+    background-color: bebebe;
+    left: 30vw;
+}
+#popup div {
+    margin : 5px;
+}
