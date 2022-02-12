@@ -98,7 +98,7 @@
                 document.querySelector("#appointment_phone").addEventListener("countrychange", (e)=>{
                     if(!phoneCode) return;
                     e.target.value = '';
-                    var newLength = 12 - phoneCode.getSelectedCountryData().dialCode.length;
+                    var newLength = phoneCode.getSelectedCountryData().dialCode.length > 2 ? 9 : 10;
                     e.target.setAttribute('minlength', newLength);
                     e.target.setAttribute('maxlength', newLength);
                     e.target.dataset.pattern = "^\\d{"+newLength+"}$";
