@@ -61,8 +61,11 @@ module.exports = {
 		});
 	},
 	list(query){
+		if(!this.scope.session.ensure("hasRole:coordinator|manager")) {
+            return {success : false, error : "not_authorized"}
+        }
 		if(!query) {
-			return require(APP_ROOT+"/modules/app")("model").get("Therapist").list()
+			return this.scope.$.call({"!storage_therapists":[]});
 		}
 	}
 }

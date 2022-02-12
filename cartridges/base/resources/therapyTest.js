@@ -41,7 +41,7 @@ module.exports = {
             return {success : false, error : "not_data_provided"}
         }
         return this.scope.$.call([{"storage_isMyClient>myClient": [{clientID : data.clientID, userID : this.scope.session.getVar("currentProfile").id}]},
-            {"!storage_getTestPrescriptions>notCompletedTest" : [{
+            {"storage_getTestPrescriptions>notCompletedTest" : [{
                 where : {
                     client : data.clientID,
                     test : data.testID,
@@ -55,7 +55,7 @@ module.exports = {
             if(checkResult.notCompletedTest && checkResult.notCompletedTest.length) {
                 return {success : false, "error": "the_test_is_already_prescripted"};
             }
-            return this.scope.$.call({"storage_prescriptTest" : [{clientID : data.clientID, testID : data.testID}]})
+            return this.scope.$.call({"!storage_prescriptTest" : [{clientID : data.clientID, testID : data.testID}]})
         })
     },
     getPrescriptedTest(data) {
@@ -112,5 +112,35 @@ module.exports = {
         ]).then(r=>{
             return {success : r && r.saveResult && r.saveResult.success}
         });
+    },
+    getTestResult(data) {
+        if(!this.scope.session.ensure("auth")){
+            return {success: false, error: "not_available"}
+        }
+        var $ = this.scope.$;
+        return $.call([
+            {"storage_getTestResult>test" : [{id : data.id, fields : ["details", "client", "test"]}]},
+            {"storage_isMyClient>check" : [{clientID : "_test.client", userID : this.scope.session.getVar("currentProfile").id}]},
+        ]).then(r=>{
+            if(!r || r.check !== true) {
+                return {success : false, error : "not_allowed"}
+            }
+            var result = JSON.parse(r.test.details);
+            return $.call([
+                {"storage_localizeTestResult>result" : [{result : result}]},
+                {"storage_getTestTranscriptByAnswers>transcript" : [{answers : Object.values(result), testID : r.test.test, localize : true}]}
+            ]).then(r=>{                
+                return r;
+            })
+        });
+    },
+    getTestDetails(data) {
+        if(!this.scope.session.ensure("hasRole:manager")) {
+            return {success : false, error : "not_authorized"}
+        }
+        return this.scope.$.call([
+            {"storage_getTestDetails>test" : [{id:data.id, getTranscripts : true, getPoints : true}]},
+            {"!storage_getLocalized" : [{obj : "_test"}]}
+        ]);
     }
 };

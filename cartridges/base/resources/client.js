@@ -15,7 +15,7 @@ module.exports = {
                 phone : query.phone,
                 rate : query.rate,
                 share : query.share,
-                userID : userID
+                therapistUserID : userID
             }
         })
     },
@@ -55,5 +55,17 @@ module.exports = {
             });
             return r;
         });
+    },
+    getUnassignedClients() {
+        if(!this.scope.session.ensure("hasRole:coordinator")) {
+            return {success : false, error : "not_authorized"}
+        }
+        return this.scope.$.call({"!storage_getUnassignedClients" : []});
+    },
+    assignClientsToTherapists(data) {
+        if(!this.scope.session.ensure("hasRole:coordinator")) {
+            return {success : false, error : "not_authorized"}
+        }
+        return this.scope.$.call({"!storage_assignClientsToTherapists": data})
     }
 }

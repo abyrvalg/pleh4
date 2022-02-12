@@ -27,7 +27,8 @@
   },
   "scripts": {
     "test": "node test.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "webpack"
   },
   "main": "index.js",
   "license": "ISC",

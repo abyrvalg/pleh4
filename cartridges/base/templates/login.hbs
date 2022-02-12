@@ -1,9 +1,9 @@
 <head>
 	<link rel="stylesheet" href="/css/style.css">
-    <script src="/js/form.js"></script>
+    <script src="/js/main.js"></script>
 </head>
 <div class="login-form-container">
-    <form action="" data-target="user_login" data-cbsuccess="route:/user/index" data-cberror_invalid_login_or_password="errorShow:invalid_credentials" data-cberror_user_not_confirm="route:/user/confirm">
+    <form action="" data-component="form" data-target="user_login" data-cbsuccess="route:/user/index" data-cberror_invalid_login_or_password="errorShow:invalid_credentials" data-cberror_user_not_confirm="route:/user/confirm">
         <p class="title">Авторизация</p>
         <div class="form_error hidden" data-error="invalid_credentials">Login or password is invalid</div>
         <div class="input_wrap_vertical">

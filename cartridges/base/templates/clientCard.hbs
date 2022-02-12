@@ -1,9 +1,8 @@
 <head>
     <link rel="stylesheet" href="/css/style.css">
-    <script src="/js/clients.js"></script>
 </head>
 {{@async head() /}}
-<div class="clients_primory" data-clientID={{it.card.id}} >
+<div class="clients_primory" data-clientID={{it.card.id}} data-component="clients">
 <div>Имя : {{it.card.name}}</div>
 <div class="card-block">
     <div>Назначенные тесты</div>
@@ -41,7 +40,7 @@
             {{@each(it.card.results)=>result}}
                 <div>
                     <div class="table_cell">
-                        <a href="#" class="showResult" data-details="{{JSON.stringify(result.details)}}" data-resultID="{{result.id}}">{{result.name}} </a>
+                        <a href="#" class="showResult" data-resultID="{{result.id}}">{{result.name}} </a>
                     </div> 
                     <div class="table_cell">{{result.date}}</div>
                 </div>
