@@ -1,17 +1,19 @@
 <head>
 	<link rel="stylesheet" href="/css/style.css">
-    <script src="/js/therapyTests.js"></script>
 </head>
 {{@async head() /}}
-<div id="test_table">
+<div id="test_table" data-component="therapyTests">
     <div class="table_head">
         <div class="table_cell">Имя</div> 
-        <div class="table_cell">Описание</div> 
+        <div class="table_cell">Описание</div>
     </div>
      {{@each(it)=>test}}
     <div>
         <div class="table_cell name">{{test.name}}</div>
         <div class="table_cell details">{{test.details}}</div>
+        <div class="table_cell edit"><input type="button" class="edit_test" data-id="{{test.id}}" value="Edit"/></div>
+        <div class="table_cell localize"><input type="button" class="localize_test"  data-id="{{test.id}}" value="Localize"/></div>
+        <div class="table_cell localize"><input type="button" class="delete_test" data-id="{{test.id}}" value="Delete"/></div>
     </div>
     {{/each}}
     <input type="button" class="new_test" value="Новый"/> 

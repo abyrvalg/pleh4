@@ -46,31 +46,56 @@ module.exports = {
         var $ = this.scope.$;
         return amplify.Auth.signIn(arg.email, arg.password).then(awsRes=>{
             return $.call({"!storage_getUserData" : [{
-                email : arg.email, fields : ['id', 'firstName', 'lastName', 'tgId', {'roles' : ['num', 'name']}, {'permissions' : ['name', 'num', 'route']}]}]
-            }).then(userData=>{
-                var userID = userData ? userData.id : dataUtils.getUID(32),
-                    roles = userData ? userData.roles : [];
-                    permissions = userData ? userData.permissions : [];
-                session.setVar("currentProfile", {
-                    id : userID,
-                    email : awsRes.attributes.email,
-                    first_name : awsRes.attributes["given_name"],
-                    last_name : awsRes.attributes["family_name"],
-                    roles : roles || [],
-                    permissions : permissions || []
-                });
-                if(!userData) return $.call({"!storage_createUser" : [{
-                    id : userID, 
-                    email : arg.email, 
-                    firstName : awsRes.attributes["given_name"],
-                    lastName : awsRes.attributes["family_name"]
-                }]}).then(r=>{                    
+                email : arg.email,
+                rolesFields : true,
+                fields : ['id', 'firstName', 'lastName', 'tgId', {'roles' : ['num', 'name']}, {'permissions' : ['name', 'num', 'route']}]
+            }]}).then(userData=>{
+                if(userData.id) {
+                    var userID = userData.id,
+                        roles = userData.roles,
+                        permissions = userData.permissions
+                    session.setVar("currentProfile", {
+                        id : userID,
+                        email : awsRes.attributes.email,
+                        first_name : awsRes.attributes["given_name"],
+                        last_name : awsRes.attributes["family_name"],
+                        roles : roles || [],
+                        permissions : permissions || []
+                    });
+                    return {success : true};
+                }
+                var query = [{"storage_createUser>createUserResult" : [{
+                        email : arg.email, 
+                        firstName : awsRes.attributes["given_name"],
+                        lastName : awsRes.attributes["family_name"],
+                        role : (arg.isClient ? 'client' : '')
+                    }]}];
+                if(arg.isClient) {
+                    query.push({"storage_addClient" : [{
+                        name : awsRes.attributes["given_name"],
+                        phone : arg.phone,
+                        userID : "_createUserResult.id"
+                    }]});                    
+                }
+                query.push({"storage_getUserData>userData" : [{
+                    email : arg.email,
+                    rolesFields : true,
+                    fields : ['id', 'firstName', 'lastName', 'tgId', {'roles' : ['num', 'name']}, {'permissions' : ['name', 'num', 'route']}]
+                }]})
+                return $.call(query).then(r=>{
+                    session.setVar("currentProfile", {
+                        id : r.userData.id,
+                        email : awsRes.attributes.email,
+                        first_name : awsRes.attributes["given_name"],
+                        last_name : awsRes.attributes["family_name"],
+                        roles : r.userData.roles,
+                        permissions : r.userData.permissions
+                    });                  
                     return {success : true}
                 }).catch(err=>{
                     LOGGER.error(err);
                     return {success: false}
                 });
-                return {success : true}
             });
         }).catch(err=>{
             if(err.code == "UserNotConfirmedException") {
@@ -84,7 +109,7 @@ module.exports = {
         });
     },
     confirmRegister(arg) {
-        var username = this.scope.session.getVar("email");
+        var username = this.scope.session.getVar("email") || arg.email;
         if(!arg || !arg.code || !username) return;
         return amplify.Auth.confirmSignUp(username, arg.code).then(resp=>{
            return {success:true}
@@ -152,5 +177,22 @@ module.exports = {
     },
     getSID() {
         return this.scope.session.getSID();
+    },
+    getCurrentClientID(){
+        var session = this.scope.session;
+        if(!session.ensure("auth")){
+            return {success: false, error: "not_available"}
+        }
+        var clientID = session.getVar("clientID");
+        if(clientID) {
+            return Promise.resolve(clientID);
+        }
+        var profile = session.getVar("currentProfile"),
+            userID = profile && profile.id;
+        return this.scope.$.call({"!storage_getClient" : [{
+            fields : ["id"], 
+            userID : userID
+        }]}).then(r=> r && (session.setVar("clientID", r.id), r.id));
+
     }
 }

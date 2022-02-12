@@ -1,0 +1,35 @@
+
+<form action="/data" class="new_client_form">
+    <div class="test_head">
+    <input class="test_name_input" placeholder="Названтие теста" name="name" value="{{it.name}}"/>
+    </div>
+    <div class="js-test_questions">
+        {{@each(it.questions)=>question}}
+            <div class="test_question_container">
+                <input class="js-test_question" value="{{question.val}}" placeholder="вопрос"/>
+                <input type="button" class="js-new_question_option" data-id="{{question.id}}" value="добавить вариант">                
+                <div class="js-test_questions_options">
+                    {{@each(question.options)=>option}}
+                        <div class="test_questions_options_container">
+                            <input class="js-test_question_option_text" value="{{option.val}}" placeholder="вариант ответа"/>
+                            <input class="js-test_question_option_points" type="number" value="{{option.points}}" placeholder="бал"/>
+                        </div>
+                    {{/each}}
+                </div>
+            </div>
+        {{/each}}
+    </div>
+    <input type="button" class="new_question" value="добавить вопрос"/> 
+    <div class="transcripts_block">
+        <div class="transcripts_list">
+          {{@each(it.transcripts)=>transcript}}
+            <div class="test_transcript_container">
+                <input class="js-test_transcript" value="{{transcript.val}}" placeholder="Описание"/>
+                <input class="js-test_transcript_frame" value="{{transcript.from}}-{{transcript.to}}" placeholder="Диапазон"/>
+            </div>
+          {{/each}}
+        </div>
+        <input type="button" class="new_transcript" value="добавить интерпритацию"/>
+    </div>
+    <input type="button" class="save" value="Сохранить"/> 
+</form>

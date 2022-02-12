@@ -1,0 +1,13 @@
+<div id="test_result_container">
+    <div>
+        {{@each(it.result)=>question}}
+            <div>
+                <span><b>{{question.val}}:</b></span>
+                <span>{{question.answer.val}}</span>
+            </div>
+        {{/each}}
+    </div>
+    <div>
+       <b> Вердикт:</b> {{it.transcript.val}}
+    </div>
+</div>

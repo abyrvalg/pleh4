@@ -85,7 +85,6 @@ function start() {
 				$.scope.$.scope.$ = $.scope.$;
 				$.call(query).then((result)=>{
 					session.updatePresistance().then(()=>res.send(result)).catch(err=>{
-						console.log("fdfdsfdsf");
 						LOGGER.error(err);
 						return {success : false}
 					});
@@ -155,12 +154,12 @@ function start() {
 				}
 			}
 			if(resultPromise){
-				resultPromise.then((result)=>{
+				resultPromise.then ? resultPromise.then((result)=>{
 					session.updatePresistance().then(()=>res.send(result));
 				}).catch((e)=>{
 					LOGGER.error(e);
 					res.send('404');
-				});
+				}) : session.updatePresistance().then(()=>res.send(resultPromise));;
 			} else {
 				LOGGER.error("cannot process route: "+path);
 				res.send('404');

@@ -87,6 +87,9 @@
     display: inline-block;
     width: 340px;
 }
+#appointment_form {
+    padding-top: 2.5em;
+}
 .appointment_table {
     vertical-align: top;
     display: inline-block;
@@ -252,4 +255,24 @@ textarea {
     border: solid;
     margin : 5px 0px;
     padding : 5px;
+}
+#appointment_form_container {
+    padding-top: 2.5em;
+}
+.card-block {
+    width: 350px;
+    display: inline-block;
+    vertical-align: top;
+    border: solid;
+    padding: 5px;
+}
+#popup {
+    position: absolute;
+    top: 55vh;
+    width: 500px;
+    background-color: bebebe;
+    left: 30vw;
+}
+#popup div {
+    margin : 5px;
 }
