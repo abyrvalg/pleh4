@@ -11,7 +11,10 @@ module.exports = {
 				getAppointments : true
 			}, scope.$).then(therapist=>{
 				if(!therapist){
-					return scope.res.redirect("/user/login");
+					return Promise.resolve({
+						status : 'redirect', 
+						path : "/user/login"
+					});
 				}
 				var now = new Date(),
 					months = [],

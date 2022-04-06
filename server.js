@@ -153,9 +153,16 @@ function start() {
 					LOGGER.error(e);
 				}
 			}
+			
 			if(resultPromise){
 				resultPromise.then ? resultPromise.then((result)=>{
-					session.updatePresistance().then(()=>res.send(result));
+					session.updatePresistance().then(()=>{
+						if(result && result.status && result.status == 'redirect') {
+							return res.redirect(result.path);
+						}
+						return res.send(result)
+					});
+
 				}).catch((e)=>{
 					LOGGER.error(e);
 					res.send('404');

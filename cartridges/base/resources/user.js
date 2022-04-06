@@ -193,6 +193,5 @@ module.exports = {
             fields : ["id"], 
             userID : userID
         }]}).then(r=> r && (session.setVar("clientID", r.id), r.id));
-
     }
 }
