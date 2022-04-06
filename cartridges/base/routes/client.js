@@ -3,7 +3,10 @@
 module.exports = {
     list : (scope)=>{
         if(!scope.session.getVar("currentProfile")){
-            return scope.res.redirect("/user/login");
+            return Promise.resolve({
+                status : 'redirect', 
+                path : "/user/login"
+            });
         }
         return scope.$.call([
             {"client_getMyCleints>clients" : []},
