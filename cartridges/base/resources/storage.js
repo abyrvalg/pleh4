@@ -671,6 +671,20 @@ module.exports = {
 			}
 		});
 	},
+	editTherapyTest(data, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		return STORAGE.get({
+			query : `update ${scheme}.tests set name = $1 where id = $2`,
+			params : [data.test.name, data.test.id]
+		}).then(r=>{
+			return {
+				transactionID : r.transaction,
+				success : true
+			}
+		});
+	},
 	createTherapyTestQuestions(data, transaction) {
 		if(!this.scope.isServer){
 			return {success: false, error: "not_available"}
@@ -707,6 +721,68 @@ module.exports = {
 				success : true
 			}
 		});
+	},
+	editTherapyTestQuestions(data, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
+		return STORAGE.get({
+			query : `update ${scheme}.test_questions `
+		})
+	},
+	editTestElements(data, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		var queries = [];
+		if(data.questions && data.questions.length) {
+			queries.push(`update ${scheme}.test_questions set `);
+		}
+	},
+	deleteTestElements(data, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
+		var queries = [],
+			params = [],
+			subQuesries = [];
+		if(data.questions && data.question.length) {
+			let where = [];
+			data.question.forEach(el=>{
+				params.push(el);
+				where.push(`$${params.length}`)
+			})
+			queries.push(`delete from ${scheme}.test_questions where id in (${where.join(',')})`);
+			queries.push(`delete from ${scheme}.test_question_options where question in (${where.join(', ')})`);
+			subQuesries.push(`select val from ${scheme}.test_questions whwre id in (${where.join(',')})`);
+			subQuesries.push(`select val from ${scheme}.test_questions_options whwre question in (${where.join(',')})`);
+		}
+		if(data.options && data.options.length) {
+			let where = [];
+			data.options.forEach(el=>{
+				params.push(el);
+				where.push(`$${params.length}`)
+			})
+			queries.push(`delete from ${scheme}.test_question_options where id in (${where.join(', ')})`);
+			subQuesries.push(`select val from ${scheme}.test_questions_options whwre id in (${where.join(',')})`);
+		}
+		if(data.transcripts && data.transcripts.length) {
+			let where = [];
+			data.transcripts.forEach(el=>{
+				params.push(el);
+				where.push(`$${params.length}`)
+			});
+			queries.push(`delete from ${scheme}.test_transcripts where id in (${where.join(', ')})`);
+			subQuesries.push(`select val from ${scheme}.test_transcripts whwre id in (${where.join(',')})`);
+		}
+		if(!queries.length) {
+			return {success : true}
+		}
+		queries.unshift(`delete from ${scheme}.local_strings where key in (${subQuesries.join(' union ')})`);
+		return STORAGE.get({   //TODO: refactor storage methods naming
+			query : queries,
+			params : params 
+		}, transaction);
 	},
 	createTherapyTestQuestionOptions(options, transaction) {
 		if(!this.scope.isServer){
@@ -800,7 +876,7 @@ module.exports = {
 		}, transaction).then(r=>{
 			return {
 				transactionID : r.transaction,
-				test : obj,
+				obj : obj,
 				success : true
 			}
 		});
@@ -903,7 +979,7 @@ module.exports = {
 			return {success : false, error: "no_data_provided"}
 		}
 		var where = [],
-			params = [data.locale || this.scope.locale]
+			params = data.locale && data.local == 'all' ? [] : [data.locale || this.scope.locale]
 		function loop(obj){
 			Object.keys(obj).forEach(key=>{
 				if(obj[key] && typeof obj[key] == 'object') return loop(obj[key]);
@@ -1196,6 +1272,36 @@ module.exports = {
 			params : params
 		}).then(r=>{
 			return {success : true}
+		});
+	},
+	deleteTest(data) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		STORAGE.get({
+			query : [
+				`delete from ${scheme}.local_strings where key in 
+					(select details as val from ${scheme}.test_transcripts where test = $1 union
+					select name as val from ${scheme}.tests where id = $1 union
+					select val from ${scheme}.test_questions where test = $1 union
+					select val from ${scheme}.test_questions_options where question in 
+					(select id from ${scheme}.test_questions where test = $1))`,
+				`delete from ${scheme}.test_questions_options where question in 
+					(select id from ${scheme}.test_questions where test = $1)`,
+				`delete from ${scheme}.test_questions where test = $1`,
+				`delete from ${scheme}.test_transcripts where test = $1`,
+				`delete from ${scheme}.tests where id = $1`
+				],
+			params : [data.id]
+		}).then(r=>{
+			//console.log(r);
+			return {success : true}
+		})
+	},
+	getAllLocales() {
+		return  STORAGE.get({
+			query : `select id, name, parent, "default" from ${scheme}.locals`,
+			params : []
 		});
 	}
 }
