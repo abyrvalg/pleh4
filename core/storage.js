@@ -62,13 +62,50 @@ module.exports = {
 					let queryPromise = currentTransaction.queries.length == 1 ? Promise.resolve() : client.query("BEGIN");
 					currentTransaction.results = [];
 					let queryError = false;
+					let queriesWithParams = [];
 					currentTransaction.queries.forEach((el, key)=>{
+						if(Array.isArray(el)) {
+							el.forEach(el2=>{
+								queriesWithParams.push({
+									query : el2,
+									params : currentTransaction.params.length > 1 
+										? currentTransaction.params[key] : currentTransaction.params[0]
+								});	
+							})
+						}
+						else {
+							queriesWithParams.push({
+								query : el,
+								params : currentTransaction.params.length > 1 ? 
+									currentTransaction.params[key] : currentTransaction.params[0]
+							})
+						}
+					});
+					queriesWithParams.map(el=>{
+						let neededParamIndexes = el.query.match(/\$\d+/g),
+							neededParams = [],
+							query = el.query,
+							map = [];
+						if(!neededParamIndexes) {
+							return el;
+						}
+						neededParamIndexes.filter((val, index, self)=>self.indexOf(val) == index).forEach(paramIndex=>{
+							neededParams.push(el.params[+(paramIndex.substr(1))-1]);
+							map.push(paramIndex);
+						});
+						return {
+							query : query.replace(/\$\d+/g, (p)=>{
+								return "$"+(map.indexOf(p)+1);
+							}),
+							params : neededParams
+						}
+					}).forEach(el=>{
 						queryPromise = queryPromise.then(r=>{
 							r && currentTransaction.results.push(r);
-							let currentParams = currentTransaction.params.length > 1 ? currentTransaction.params[key] : currentTransaction.params[0];
-							LOGGER.debug("DB query: "+el.replace(/\$(\d+)/g, (m, v)=>currentParams[+v-1]));
-							return client.query(el, currentParams).catch(err=>{
-								LOGGER.error("ERROR during processing query:"+el);
+							var explicitQuery = el.query.replace(/\$(\d+)/g, (m, v)=>el.params[+v-1]); //for logging only					
+							LOGGER.debug("DB query: "+explicitQuery);
+							return client.query(el.query, el.params).catch(err=>{
+								LOGGER.error("ERROR during processing query:"+explicitQuery);
 								LOGGER.error(err);
 								queryError = true;								
 							});

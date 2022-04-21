@@ -27,18 +27,18 @@ module.exports = {
         if(!this.scope.session.ensure("hasPermission:therapy.tests")) {
             return {success : false, error : "not_authorized"}
         }
-        console.log(data);
-        return {test : true};
-        this.scope.$.call([
-            {"storage_localize>localizeResult" : [{locale : data.locale, obj : data.new, regExp : "val"}, 
-                {id : -1}]},
-            {"storage_editTestElements": [{data : data.change, locale : data.locale},
-                {id : "_localizeResult.transactionID"}]},
-            {"storage_addTestElements": [{data : "_localizeResult.obj", locale : data.locale},
-                {id : "_localizeResult.transactionID"}]},
-            {"storage_deleteTestElements" : [{data : data.remove, locale : data.locale}, 
-                {id : "_localizeResult.transactionID", commit : true}]},
-        ])
+        return this.scope.$.call([
+            {"storage_beginTransaction>tr" : []},
+            {"storage_localize>localizeResult" : [{locale : data.locale, obj : data.add, regExp : "val"}, 
+                {id : "_tr.transactionID"}]},
+            {"storage_editTherapyTestElements": [{obj : data.edit, locale : data.locale},
+                {id : "_tr.transactionID"}]},
+            {"storage_addTherapyTestElements": [{elements : "_localizeResult.obj", test : data.id},
+                {id : "_tr.transactionID"}]},
+            {"storage_deleteTherapyTestElements" : [data.remove, 
+                {id : "_tr.transactionID"}]},
+            {"storage_commitTransaction" : {id : "_tr.transactionID"}}
+        ]);
     },
     getTestList : function() {
         if(!this.scope.session.ensure("hasRole:therapist|manager")) {

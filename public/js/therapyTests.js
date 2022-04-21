@@ -84,6 +84,7 @@
             }
             else {
                 let req = {
+                        id : testID,
                         remove : {
                             questions : [], 
                             options : [], 
@@ -98,7 +99,8 @@
                             questions : [],
                             options : [],
                             transcripts : []
-                        }
+                        },
+                        locale : "ua"
                     };
                 
                 document.querySelectorAll(".js-test_question.updated").forEach(el=>{
@@ -142,16 +144,16 @@
                         req.add.options.push({
                             text : el.value,
                             question : questionID,
-                            points : el.closest('.test_questions_options_container')
-                                    .querySelector('.js-test_question_option_points.updated').value
+                            points : (+el.closest('.test_questions_options_container')
+                                    .querySelector('.js-test_question_option_points.updated').value)
                         })
                     }
                     else {
                         req.edit.options.push({
                             text : el.value,
                             id : el.dataset.id,
-                            points : el.closest('.test_questions_options_container')
-                                    .querySelector('.js-test_question_option_points').value
+                            points : (+el.closest('.test_questions_options_container')
+                                    .querySelector('.js-test_question_option_points').value)
                         });
                     }
                 });
