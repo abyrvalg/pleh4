@@ -12,43 +12,32 @@
         <div class="table_cell name">{{test.name}}</div>
         <div class="table_cell details">{{test.details}}</div>
         <div class="table_cell edit"><input type="button" class="edit_test" data-id="{{test.id}}" value="Edit"/></div>
-        <div class="table_cell localize"><input type="button" class="localize_test"  data-id="{{test.id}}" value="Localize"/></div>
-        <div class="table_cell localize"><input type="button" class="delete_test" data-id="{{test.id}}" value="Delete"/></div>
+        <div class="table_cell"><input type="button" class="delete_test" data-id="{{test.id}}" value="Delete"/></div>
     </div>
     {{/each}}
     <input type="button" class="new_test" value="Новый"/> 
-    <form action="/data" class="new_client_form hidden">
-        <div class="test_head">
-        <input class="test_name_input" placeholder="Названтие теста" name="name" value=""/>
-        <textarea placeholder="Описание" class="test_description_input" name="details"></textarea>
-        </div>
-        <div class="js-test_questions"></div>
-        <input type="button" class="new_question" value="добавить вопрос"/> 
-        <div class="transcripts_block">
-            <div class="transcripts_list hidden"></div>
-            <input type="button" class="new_transcript" value="добавить интерпритацию"/>
-        </div>
-        <input type="button" class="save" value="Сохранить"/> 
-    </form>
 </div>
 
 <script type="text/template" id="test_new_question">
     <div class="test_question_container">
-        <input class="js-test_question" placeholder="вопрос"/>
-        <input type="button" class="js-new_question_option" value="добавить вариант"/>
+        <input class="js-test_question updated" data-id="new" placeholder="вопрос"/>
+        <input type="button" class="js-new_question_option updated" value="добавить вариант"/>
+        <button class="remove_row">X</button>  
         <div class="js-test_questions_options"></div>
     </div>
 </script>
 <script type="text/template" id="new_question_option">
     <div class="test_questions_options_container">
-        <input class="js-test_question_option_text" placeholder="вариант ответа"/>
-        <input class="js-test_question_option_points" type="number" placeholder="бал"/>
+        <input class="js-test_question_option_text updated" data-id="new" placeholder="вариант ответа"/>
+        <input class="js-test_question_option_points updated" type="number" placeholder="бал"/>
+        <button class="remove_row">X</button>  
     </div>
 </script>
 
 <script type="text/template" id="test_new_transcript">
     <div class="test_transcript_container">
-        <input class="js-test_transcript" placeholder="Описание"/>
-        <input class="js-test_transcript_frame" placeholder="Диапазон"/>
+        <input class="js-test_transcript updated" data-id="new" placeholder="Описание"/>
+        <input class="js-test_transcript_frame updated" placeholder="Диапазон"/>
+        <button class="remove_row">X</button>  
     </div>
 </script>

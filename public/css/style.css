@@ -268,11 +268,24 @@ textarea {
 }
 #popup {
     position: absolute;
-    top: 55vh;
+    top: 20vh;
     width: 500px;
-    background-color: bebebe;
+    background-color: #bebebe;
     left: 30vw;
+    border: solid 10px #aaa;
 }
 #popup div {
     margin : 5px;
+}
+.table_cell.name {
+    width: 200px;
+}
+
+.table_row {
+    padding: 5px;
+    border-bottom: #000;
+}
+
+.table_row:hover {
+    background-color: #ccc;
 }

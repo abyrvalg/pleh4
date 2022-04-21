@@ -671,6 +671,20 @@ module.exports = {
 			}
 		});
 	},
+	editTherapyTest(data, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		return STORAGE.get({
+			query : `update ${scheme}.tests set name = $1 where id = $2`,
+			params : [data.test.name, data.test.id]
+		}, transaction).then(r=>{
+			return {
+				transactionID : r.transaction,
+				success : true
+			}
+		});
+	},
 	createTherapyTestQuestions(data, transaction) {
 		if(!this.scope.isServer){
 			return {success: false, error: "not_available"}
@@ -681,7 +695,9 @@ module.exports = {
 		var values =[]
 			params = [data.testID, 1],
 			options = [];
-		
+		if(!data.questions.length) {
+			return {success : true, details : "nothing_to_add", options : []}
+		}
 		data.questions.forEach((question, index)=>{
 			var UUID = dataUtils.getUID(32),
 				row = [];
@@ -692,10 +708,7 @@ module.exports = {
 			params.push(index);
 			row.push("$"+params.length);
 			values.push("($1, $2, "+row.join(", ")+")");
-			options.push({
-				questionID : UUID,
-				options : question.options
-			});
+			options = options.concat(question.options.map(el=>{el.question = UUID; return el}));
 		});
 		return STORAGE.get({
 			query : "insert into "+scheme+".test_questions (test, type, id, val, order_num) values "+values,
@@ -708,6 +721,124 @@ module.exports = {
 			}
 		});
 	},
+	editTherapyTestElements(data, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		var queries = [],
+			queryMap = [],
+			params = [data.locale];
+		['questions', 'options', 'transcripts'].forEach(element=>{
+			if(!data.obj[element] || !data.obj[element].length) {
+				return;
+			}
+			let map = data.obj[element].map(q=>{
+				var pair = [];
+				params.push(q.id);
+				pair.push(`$${params.length}`);
+				params.push(q.text);
+				pair.push(`$${params.length}`);
+				return `(${pair.join(',')})`;
+			});
+			queryMap.push(`select s.key, v.new_val from (values ${map.join(", ")}) as v("id", new_val)
+					left join ${scheme}.${{
+						questions : "test_questions",
+						options : "test_questions_options",
+						transcripts : "test_transcripts"
+					}[element]} as q on q.id = v.id
+					left join test.local_strings as s on s.key = q.${element == "transcripts" ? "details" :"val"} and s.locale = $1`);
+			if(element == 'options') {
+				let map = data.obj[element].map(o=>{
+					var pair = [];
+					params.push(o.id);
+					pair.push(`$${params.length}`);
+					params.push(+o.points);
+					pair.push(`cast ($${params.length} as integer)`);
+					return `(${pair.join(',')})`;
+				});
+				queries.push(`update ${scheme}.test_questions_options as o set points = v.points
+					from (values ${map.join(",")}) as v("id", "points") where o.id = v.id`);
+			}
+			if(element == 'transcripts') {
+				let map = data.obj[element].map(t=>{
+					var pair = [];
+					params.push(t.id);
+					pair.push(`$${params.length}`);
+					let fromTo = t.frame.split("-");
+					params.push(+fromTo[0]);
+					pair.push(`$${params.length}`);
+					params.push(+fromTo[1]);
+					pair.push(`$${params.length}`);
+					return `(${pair.join(',')})`;
+				});
+				queries.push(`update ${scheme}.test_transcripts as t 
+					set "from"= cast (v.from as integer), "to"= cast (v.to as integer)
+					from (values ${map.join(",")}) as v(id, "from", "to") where t.id = v.id`);
+			}
+		});
+		if(!queryMap.length) {
+			return {success : true, details : "nothingToUpdate"}
+		}
+		queries.push(`update ${scheme}.local_strings as ls set val = m.new_val from (${queryMap.join(" union ")}) as m 
+			where ls.key = m.key and ls.locale = $1`);
+		return STORAGE.get({
+			query : queries,
+			params : params
+		}, transaction);
+	},
+	addTherapyTestElements(data, transaction) {
+		return this.scope.$.call([
+			{"storage_createTherapyTestQuestions>questionsResult" : [{questions : data.elements.questions, testID : data.test}, 
+				transaction]},
+			{"storage_createTherapyTestQuestionOptions" : [[data.elements.options, "_questionsResult.options"], transaction]},
+			{"storage_createTherapyTestTranscripts" : [{transcripts : data.elements.transcripts, testID: data.test}, transaction]}
+		]);
+	},
+	deleteTherapyTestElements(data, transaction) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		} 
+		var queries = [],
+			params = [],
+			subQuesries = [];
+		if(data.questions && data.questions.length) {
+			let where = [];
+			data.questions.forEach(el=>{
+				params.push(el);
+				where.push(`$${params.length}`)
+			})
+			queries.push(`delete from ${scheme}.test_questions where id in (${where.join(',')})`);
+			queries.push(`delete from ${scheme}.test_questions_options where question in (${where.join(', ')})`);
+			subQuesries.push(`select val from ${scheme}.test_questions where id in (${where.join(',')})`);
+			subQuesries.push(`select val from ${scheme}.test_questions_options where question in (${where.join(',')})`);
+		}
+		if(data.options && data.options.length) {
+			let where = [];
+			data.options.forEach(el=>{
+				params.push(el);
+				where.push(`$${params.length}`)
+			})
+			queries.push(`delete from ${scheme}.test_questions_options where id in (${where.join(', ')})`);
+			subQuesries.push(`select val from ${scheme}.test_questions_options where id in (${where.join(',')})`);
+		}
+		if(data.transcripts && data.transcripts.length) {
+			let where = [];
+			data.transcripts.forEach(el=>{
+				params.push(el);
+				where.push(`$${params.length}`)
+			});
+			queries.push(`delete from ${scheme}.test_transcripts where id in (${where.join(', ')})`);
+			subQuesries.push(`select val from ${scheme}.test_transcripts where id in (${where.join(',')})`);
+		}
+		if(!queries.length) {
+			return {success : true}
+		}
+		queries.unshift(`delete from ${scheme}.local_strings where key in (${subQuesries.join(' union ')})`);
+		return STORAGE.get({   //TODO: refactor storage methods naming
+			query : queries,
+			params : params 
+		}, transaction);
+	},
 	createTherapyTestQuestionOptions(options, transaction) {
 		if(!this.scope.isServer){
 			return {success: false, error: "not_available"}
@@ -715,28 +846,28 @@ module.exports = {
 		if(!options) {
 			return {success : false, error: "noDataProvided"}
 		}
+		options = dataUtils.concatSubArrays(options);
 		var params = [],
 			values = [];
-		options.forEach(option=>{
-			var rowInitial = [];
-			params.push(option.questionID);
-			rowInitial.push("$"+params.length);
-			option.options.forEach((op, index)=>{
-				var UUID = dataUtils.getUID(32),
-					row = rowInitial.join(",").split(",");
-				params.push(UUID);
-				row.push("$"+params.length);
-				params.push(op.text);
-				row.push("$"+params.length);
-				params.push(op.points);
-				row.push("$"+params.length);
-				params.push(index);
-				row.push("$"+params.length);
-				values.push("("+row.join(", ")+")");		
-			});
+		options.forEach((option, index)=>{
+			let row = [];
+			params.push(option.question);
+			row.push("$"+params.length);
+			params.push(dataUtils.getUID(32));
+			row.push("$"+params.length);
+			params.push(option.text);
+			row.push("$"+params.length);
+			params.push(+option.points);
+			row.push("$"+params.length);
+			params.push(index);
+			row.push("$"+params.length);
+			values.push("("+row.join(", ")+")");		
 		});
+		if(!values.length) {
+			return {success : true, details : "nothingToUpdate"}
+		}
 		return STORAGE.get({
-			query : "insert into "+scheme+".test_questions_options (question, id, val, points, order_num) values "+values,
+			query : "insert into "+scheme+".test_questions_options (question, id, val, points, order_num) values "+values.join(","),
 			params : params
 		}, transaction).then(r=>{
 			return {
@@ -794,13 +925,19 @@ module.exports = {
 			return obj;
 		}
 		obj = loop(data.obj);
+		if(!values.length) {
+			return {
+				obj : obj,
+				success : true
+			}
+		}
 		return STORAGE.get({
 			query : "insert into "+scheme+".local_strings (locale, entries, key, val) values "+values.join(","),
 			params : params
 		}, transaction).then(r=>{
 			return {
 				transactionID : r.transaction,
-				test : obj,
+				obj : obj,
 				success : true
 			}
 		});
@@ -850,7 +987,7 @@ module.exports = {
 				"+joins.join(" ")+" \
 				left join "+scheme+".test_questions as tq on tq.test = t.id \
 				left join "+scheme+".test_questions_options as too on too.question = tq.id \
-				where "+where+" order by tq.order_num, too.order_num",
+				where "+where+" order by tq.id, too.id, tq.order_num, too.order_num",
 			params : params
 		}).then(r=>{
 			if (!r || !r.length) {
@@ -903,7 +1040,7 @@ module.exports = {
 			return {success : false, error: "no_data_provided"}
 		}
 		var where = [],
-			params = [data.locale || this.scope.locale]
+			params = data.locale && data.local == 'all' ? [] : [data.locale || this.scope.locale]
 		function loop(obj){
 			Object.keys(obj).forEach(key=>{
 				if(obj[key] && typeof obj[key] == 'object') return loop(obj[key]);
@@ -1196,6 +1333,49 @@ module.exports = {
 			params : params
 		}).then(r=>{
 			return {success : true}
+		});
+	},
+	deleteTest(data) {
+		if(!this.scope.isServer){
+			return {success: false, error: "not_available"}
+		}
+		STORAGE.get({
+			query : [
+				`delete from ${scheme}.local_strings where key in 
+					(select details as val from ${scheme}.test_transcripts where test = $1 union
+					select name as val from ${scheme}.tests where id = $1 union
+					select val from ${scheme}.test_questions where test = $1 union
+					select val from ${scheme}.test_questions_options where question in 
+					(select id from ${scheme}.test_questions where test = $1))`,
+				`delete from ${scheme}.test_questions_options where question in 
+					(select id from ${scheme}.test_questions where test = $1)`,
+				`delete from ${scheme}.test_questions where test = $1`,
+				`delete from ${scheme}.test_transcripts where test = $1`,
+				`delete from ${scheme}.tests where id = $1`
+				],
+			params : [data.id]
+		}).then(r=>{
+			return {success : true}
+		})
+	},
+	getAllLocales() {
+		return  STORAGE.get({
+			query : `select id, name, parent, "default" from ${scheme}.locals`,
+			params : []
+		});
+	},
+	commitTransaction(data) {
+		return STORAGE.get({
+			query : " ",
+			params : []
+		}, {id : data.id, commit : true})
+	},
+	beginTransaction(){
+		return STORAGE.get({
+			query : " ",
+			params : []
+		}, {id : -1}).then(r=>{
+			return {transactionID : r.transaction}
 		});
 	}
 }

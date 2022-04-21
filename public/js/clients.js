@@ -1,8 +1,5 @@
 
 document.querySelector(".clients_primory").addEventListener('click', (e)=>{
-    if(document.querySelector("#popup")){
-        document.querySelector("#popup").remove();
-    }
     if(e.target.classList.contains('new_client')){
         document.querySelector('form.new_client_form').classList.remove('hidden');
         return;

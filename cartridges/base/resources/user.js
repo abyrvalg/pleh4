@@ -118,7 +118,7 @@ module.exports = {
         });
     },
     sendConfirm(arg){
-        var username = this.scope.session.getVar("email");
+        var username = this.scope.session.getVar("email") || arg.email;
         if(!username) return {success : false, error : "no_user_name"};
         return amplify.Auth.resendSignUp(username).then(resp=>{
             return {success : true}
@@ -193,6 +193,5 @@ module.exports = {
             fields : ["id"], 
             userID : userID
         }]}).then(r=> r && (session.setVar("clientID", r.id), r.id));
-
     }
 }

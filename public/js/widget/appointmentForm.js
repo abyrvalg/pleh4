@@ -90,6 +90,19 @@
                         document.getElementById("appiontment_time").classList[removeAdd]("hidden");
                     });
                 }
+                var phoneCode = window.intlTelInput && window.intlTelInput(document.querySelector("#appointment_phone"), {
+                    autoHideDialCode : false,
+                    separateDialCode : true,
+                    initialCountry : "ua"
+                });
+                document.querySelector("#appointment_phone").addEventListener("countrychange", (e)=>{
+                    if(!phoneCode) return;
+                    e.target.value = '';
+                    var newLength = phoneCode.getSelectedCountryData().dialCode.length > 2 ? 9 : 10;
+                    e.target.setAttribute('minlength', newLength);
+                    e.target.setAttribute('maxlength', newLength);
+                    e.target.dataset.pattern = "^\\d{"+newLength+"}$";
+                });
                 document.getElementById("appointment_submit").addEventListener("click", e=>{
                     e.preventDefault();
                     var inputs = e.target.closest("form").querySelectorAll("input,select"),
@@ -113,7 +126,7 @@
                     var params = {
                             therapist : document.getElementById("appointment_form_container").dataset.therapist,
                             name : document.getElementById("appointment_name").value,
-                            phone : document.getElementById("appointment_phone").value,                            
+                            phone : (phoneCode ? '+'+phoneCode.getSelectedCountryData().dialCode :'')+document.getElementById("appointment_phone").value,                            
                             howToCall : document.getElementById("how_to_call").value
                         };
                     if(document.getElementById("selectTime") && document.getElementById("selectTime").checked){
