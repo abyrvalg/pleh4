@@ -1174,7 +1174,7 @@ module.exports = {
 			where.push("result is null");
 		}
 		return STORAGE.get({
-			query : "select p.id, t.name, p.test, p.prescription_date, p.complete_date \
+			query : "select p.id, t.name, p.test, p.prescription_date \
 				from "+scheme+".test_prescriptions as p \
 				left join "+scheme+".tests as t on t.id = p.test \
 				left join "+scheme+".clients as c on c.id = p.client \
