@@ -1,9 +1,8 @@
 <head>
 	<link rel="stylesheet" href="/css/style.css">
-    <script src="/js/clients.js"></script>
 </head>
 {{@async head() /}}
-<div id="clients_table">
+<div id="clients_table" data-component="clients" class="clients_primory">
     <div class="table_head">
         <div class="table_cell">Имя</div>
         <div class="table_cell">Телефон</div>
@@ -13,7 +12,7 @@
     </div>
     {{@each(it.clients)=>client}}
     <div>
-        <div class="table_cell name">{{client.name}}</div>
+        <div class="table_cell name"><a href="/client/view?id={{client.id}}">{{client.name}}</a></div>
         <div class="table_cell phone">{{client.phone}}</div>
         <div class="table_cell rate">{{client.rate}}</div>
         <div class="table_cell rate">{{client.therapist_share}}</div>  

@@ -1,0 +1,23 @@
+<head>
+	<link rel="stylesheet" href="/css/style.css">
+</head>
+{{@async head() /}}
+<div id="clients_table" class="clients_primory">
+    <div class="table_head">
+        <div class="table_cell name">Имя</div>
+        <div class="table_cell">Тариф</div>|
+        <div class="table_cell">Доля терапевта</div>|  
+    </div>
+    {{@each(it.therapists)=>therapist}}
+    <div class="table_row">
+        <div class="table_cell name"><a href="/therapist/view?id={{therapist.id}}">{{therapist.first_name}} {{therapist.last_name}}</a></div>
+        <div class="table_cell">
+            <input value="{{therapist.rate}}"/>
+        </div>
+        <div class="table_cell">
+            <input value="{{therapist.share}}"/>
+        </div>
+        <div class="table_cell rate"><input type="button" class="remove_therapist" data-id="{{therapist.id}}" value="Удалить"/></div>
+    </div>
+    {{/each}}
+</div>

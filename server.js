@@ -78,14 +78,13 @@ function start() {
 				$.scope.locale = locale;
 				$.scope.$ = new LiteQL();
 				$.scope.$.scope.isServer = true;
-				$.scope.$.scope.session;
-				$.scope.$.scope.req;
-				$.scope.$.scope.res;
-				$.scope.$.scope.locale;
+				$.scope.$.scope.session = session;
+				$.scope.$.scope.req = req;
+				$.scope.$.scope.res = res;
+				$.scope.$.scope.locale = locale;
 				$.scope.$.scope.$ = $.scope.$;
 				$.call(query).then((result)=>{
 					session.updatePresistance().then(()=>res.send(result)).catch(err=>{
-						console.log("fdfdsfdsf");
 						LOGGER.error(err);
 						return {success : false}
 					});
@@ -154,18 +153,20 @@ function start() {
 					LOGGER.error(e);
 				}
 			}
+			
 			if(resultPromise){
-				resultPromise.then((result)=>{
+				resultPromise.then ? resultPromise.then((result)=>{
 					session.updatePresistance().then(()=>{
 						if(result && result.status && result.status == 'redirect') {
 							return res.redirect(result.path);
 						}
 						return res.send(result)
 					});
+
 				}).catch((e)=>{
 					LOGGER.error(e);
 					res.send('404');
-				});
+				}) : session.updatePresistance().then(()=>res.send(resultPromise));;
 			} else {
 				LOGGER.error("cannot process route: "+path);
 				res.send('404');

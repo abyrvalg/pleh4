@@ -43,7 +43,10 @@ module.exports = {
 			reg = /msg\(\w+\_[\w\^\$]+\)/g,
 			entities = objStr.match(reg),
 			keys = {},
-			promise = Promise.resolve(keys);		
+			promise = Promise.resolve(keys);
+		if(!entities || !entities.length) {
+			return Promise.resolve(obj);
+		}	
 		entities.forEach(entitie=>{
 			let entArray = entitie.split("_"),
 				category = entArray[0].substr(4, entArray[0].length - 1);

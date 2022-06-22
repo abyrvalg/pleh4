@@ -1,0 +1,27 @@
+<head>
+	<link rel="stylesheet" href="/css/style.css">
+</head>
+{{@async head() /}}
+<div id="clients_table" data-component="clients" class="clients_primory">
+    <div class="table_head">
+        <div class="table_cell">Имя</div>
+        <div class="table_cell">Телефон</div>
+        <div class="table_cell">Терапевт</div>|   
+    </div>
+    {{@each(it.clients)=>client}}
+    <div>
+        <div class="table_cell name"><a href="/client/view?id={{client.id}}">{{client.name}}</a></div>
+        <div class="table_cell phone">{{client.phone}}</div>
+        <div class="table_cell assign_therapist">
+            <select data-clientid="{{client.id}}" class="assignment_val">
+                <option value="">--Не назначен--</option>
+                {{@each(it.therapists)=>therapist}}
+                <option value="{{therapist.id}}">{{therapist.first_name}} {{therapist.last_name}}</option>
+                {{/each}}
+            </select>
+        </div>
+        <div class="table_cell rate"><input type="button" class="remove_client" data-id="{{client.id}}" value="Удалить"/></div>
+    </div>
+    {{/each}}
+</div>
+<input type="submit" class="assign_clients" value="Сохранить"/>
