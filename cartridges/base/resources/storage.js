@@ -879,7 +879,7 @@ module.exports = {
 	createTherapyTestTranscripts(data, transaction){
 		var params = [data.testID],
 			values = [];
-		if(!data || !data.transcripts || !data.testID) {
+		if(!data || !data.transcripts || !data.transcripts.length || !data.testID) {
 			return {success : false, error: "noDataProvided"}
 		}
 		data.transcripts.forEach(transcript=>{
