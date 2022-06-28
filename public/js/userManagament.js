@@ -1,4 +1,4 @@
-window.onload = function(){
+(()=>{
     var changeList = {}
     document.querySelector(".user_table").addEventListener("change", e=>{
         if(e.target.type == "checkbox"){
@@ -29,4 +29,4 @@ window.onload = function(){
             })
         });
     })
-} 
+})(); 
