@@ -1,4 +1,4 @@
-window.onload = function(){
+(()=>{
     function processCallback(cb, form, resp){
         cb = cb.split(":");
         ({
@@ -42,4 +42,4 @@ window.onload = function(){
             });
         }
     });
-}
+})();

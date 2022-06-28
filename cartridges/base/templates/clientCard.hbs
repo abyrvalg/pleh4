@@ -1,0 +1,63 @@
+<head>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+{{@async head() /}}
+<div class="clients_primory" data-clientID={{it.card.id}} data-component="clients">
+<div>Имя : {{it.card.name}}</div>
+<div class="card-block">
+    <div>Назначенные тесты</div>
+    <div id="test_table">
+        <div class="table_head">
+            <div class="table_cell">Тест</div> 
+            <div class="table_cell">Назначенен</div>
+            <div class="table_cell">Статус</div>
+        </div>
+        <div>
+            {{@each(it.card.prescriptions)=>prescription}}
+                <div>
+                    <div class="table_cell">{{prescription.name}}</div> 
+                    <div class="table_cell">{{prescription.date}}</div>
+                    <div class="table_cell">
+                        {{@if(prescription.results.length)}}
+                        <a class="showResults" data-testID="{{prescription.testID}}" data-clientID={{it.card.id}} href="#">Done</a>
+                        {{#else}}
+                        Not Done
+                        {{/if}}
+                    </div>
+                </div>
+            {{/each}}
+        </div>
+    </div>
+</div>
+<div class="card-block">
+    Пройденные тесты
+    <div id="result_table">
+        <div class="table_head">
+            <div class="table_cell">Тест</div> 
+            <div class="table_cell">Пройден</div> 
+        </div>
+        <div>
+            {{@each(it.card.results)=>result}}
+                <div>
+                    <div class="table_cell">
+                        <a href="#" class="showResult" data-resultID="{{result.id}}">{{result.name}} </a>
+                    </div> 
+                    <div class="table_cell">{{result.date}}</div>
+                </div>
+            {{/each}}
+        </div>
+    </div>
+</div>
+<div class="card-block">
+    <div>Назначить тест</div>
+    <div>
+        <select class="prescript_test_select">
+            {{@each(it.tests)=>test}}
+                <option value="{{test.id}}">
+                    {{test.name}}
+                </option>
+            {{/each}}
+        </select>
+        <input type="button" class="prescritp_test_submit" value="Назначить"/>
+    </div>
+</div>

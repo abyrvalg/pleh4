@@ -1,4 +1,4 @@
-const e = require('express');
+
 const mocks = require('./storage.mock');
 const LOGGER = require(APP_ROOT+"/modules/app")('logger');
 const mode = "pg";
@@ -54,23 +54,60 @@ module.exports = {
 					currentTransaction = transactions[transaction.id];
 				} else {
 					currentTransaction = {
-						queries : [obj.query],
+						queries : (typeof obj.query == 'string' ? [obj.query] : obj.query),
 						params : [obj.params]
 					};
 				}
-				if (!transaction || transaction.commit || transaction.id === undefined) {		
+				if (!transaction || transaction.commit || transaction.id === undefined) {
 					let queryPromise = currentTransaction.queries.length == 1 ? Promise.resolve() : client.query("BEGIN");
 					currentTransaction.results = [];
+					let queryError = false;
+					let queriesWithParams = [];
 					currentTransaction.queries.forEach((el, key)=>{
+						if(Array.isArray(el)) {
+							el.forEach(el2=>{
+								queriesWithParams.push({
+									query : el2,
+									params : currentTransaction.params.length > 1 
+										? currentTransaction.params[key] : currentTransaction.params[0]
+								});	
+							})
+						}
+						else {
+							queriesWithParams.push({
+								query : el,
+								params : currentTransaction.params.length > 1 ? 
+									currentTransaction.params[key] : currentTransaction.params[0]
+							})
+						}
+					});
+					queriesWithParams.map(el=>{
+						let neededParamIndexes = el.query.match(/\$\d+/g),
+							neededParams = [],
+							query = el.query,
+							map = [];
+						if(!neededParamIndexes) {
+							return el;
+						}
+						neededParamIndexes.filter((val, index, self)=>self.indexOf(val) == index).forEach(paramIndex=>{
+							neededParams.push(el.params[+(paramIndex.substr(1))-1]);
+							map.push(paramIndex);
+						});
+						return {
+							query : query.replace(/\$\d+/g, (p)=>{
+								return "$"+(map.indexOf(p)+1);
+							}),
+							params : neededParams
+						}
+					}).forEach(el=>{
 						queryPromise = queryPromise.then(r=>{
 							r && currentTransaction.results.push(r);
-							LOGGER.debug("DB query: "+el.replace(/\$(\d+)/g, (m, v)=>currentTransaction.params[key][+v-1]));
-							return client.query(el, currentTransaction.params[key]).catch(err=>{
-								LOGGER.error("ERROR during processing query:"+el);
+							var explicitQuery = el.query.replace(/\$(\d+)/g, (m, v)=>el.params[+v-1]); //for logging only					
+							LOGGER.debug("DB query: "+explicitQuery);
+							return client.query(el.query, el.params).catch(err=>{
+								LOGGER.error("ERROR during processing query:"+explicitQuery);
 								LOGGER.error(err);
-								return client.query("ROLLBACK").then(r=>{
-									return {success : false}
-								});
+								queryError = true;								
 							});
 						})
 					});
@@ -82,15 +119,22 @@ module.exports = {
 							}
 						}
 						return res.rows;
-					}) : queryPromise.then(r=>client.query("COMMIT").then(res=>{
-						r && currentTransaction.results.push(r);
-						res && currentTransaction.results.push(res);
-						currentTransaction.comitted = true;
-						return {success: true, results : currentTransaction.results};		
-					}).catch(err=>{
-						LOGGER.error(err);
-						return {success:false};
-					}));
+					}) : queryPromise.then(r=>{
+							if(queryError) {
+								return client.query("ROLLBACK").then(r=>{
+									return {success : false}
+								});
+							}
+							return client.query("COMMIT").then(res=>{
+							r && currentTransaction.results.push(r);
+							res && currentTransaction.results.push(res);
+							currentTransaction.comitted = true;
+							return {success: true, results : currentTransaction.results};		
+						}).catch(err=>{
+							LOGGER.error(err);
+							return {success:false};
+						})
+					});
 				} else {
 					return  Promise.resolve({success : true, transaction : transaction.id});
 				}

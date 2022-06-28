@@ -1,5 +1,7 @@
 $ = require('liteql');
 
 module.exports = {
-	index : ($)=>{return {"hello":"world"}}
+	index : (scope)=>{
+        return scope.res.redirect(scope.session.getVar("currentProfile") ? "user/index" : "/user/login");
+	}
 }

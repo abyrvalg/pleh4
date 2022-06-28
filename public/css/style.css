@@ -232,6 +232,61 @@ input::placeholder {color: #000;}
     min-width: 300px;
     margin: auto;
 }
+.test_question_container {
+    border: solid;
+    margin : 5px 0px;
+    padding : 5px;
+}
+.test_questions_options_container {
+    margin : 5px 0px;
+}
+
+.test_head {
+    margin: 5px;
+}
+.test_name_input {
+    vertical-align: top;
+}
+textarea {
+    height: 100px;
+    width: 500px;
+}
+
+.transcripts_list {
+    border: solid;
+    margin : 5px 0px;
+    padding : 5px;
+}
 #appointment_form_container {
     padding-top: 2.5em;
+}
+.card-block {
+    width: 350px;
+    display: inline-block;
+    vertical-align: top;
+    border: solid;
+    padding: 5px;
+}
+#popup {
+    position: absolute;
+    top: 20vh;
+    width: 500px;
+    background-color: #bebebe;
+    left: 30vw;
+    border: solid 10px #aaa;
+}
+#popup div {
+    margin : 5px;
+}
+.table_cell.name {
+    width: 200px;
+}
+
+.table_row {
+    padding: 5px;
+    border-bottom: #000;
+}
+
+.table_row:hover {
+    background-color: #ccc;
 }
