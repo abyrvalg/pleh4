@@ -1,0 +1,47 @@
+
+<form action="/data" class="new_client_form" data-id="{{it.test.id}}">
+    <div class="test_head">
+    <input class="test_name_input" placeholder="Названтие теста" name="name" value="{{it.test.name}}"/>
+    {{@if(it.defaultlocale)}}
+        <input value="{{it.defaultlocale.id}}" disabled/>
+    {{#else}}
+        <select>
+            {{@each(it.locales)=>locale}}
+            <option {{@if(locale.default)}} selected {{/if}} >{{locale.id}}</option>
+            {{/each}}
+        </select>
+    {{/if}}
+    </div>
+    <div class="js-test_questions">
+        {{@each(it.test.questions)=>question}}
+            <div class="test_question_container">
+                <input class="js-test_question" value="{{question.val}}" data-id="{{question.id}}" placeholder="вопрос"/>
+                <input type="button" class="js-new_question_option" data-id="{{question.id}}" value="добавить вариант">
+                <button class="remove_row">X</button>              
+                <div class="js-test_questions_options">
+                    {{@each(question.options)=>option}}
+                        <div class="test_questions_options_container">
+                            <input class="js-test_question_option_text" data-id="{{option.id}}" value="{{option.val}}" placeholder="вариант ответа"/>
+                            <input class="js-test_question_option_points" type="number" value="{{option.points}}" placeholder="бал"/>
+                            <button class="remove_row">X</button>
+                        </div>
+                    {{/each}}
+                </div>
+            </div>
+        {{/each}}
+    </div>
+    <input type="button" class="new_question" value="добавить вопрос"/> 
+    <div class="transcripts_block">
+        <div class="transcripts_list">
+          {{@each(it.test.transcripts)=>transcript}}
+            <div class="test_transcript_container">
+                <input class="js-test_transcript" data-id="{{transcript.id}}" value="{{transcript.val}}" placeholder="Описание"/>
+                <input class="js-test_transcript_frame" value="{{transcript.from}}-{{transcript.to}}" placeholder="Диапазон"/>
+                <button class="remove_row">X</button>
+            </div>
+          {{/each}}
+        </div>
+        <input type="button" class="new_transcript" value="добавить интерпритацию"/>
+    </div>
+    <input type="button" class="save" value="Сохранить"/> 
+</form>

@@ -16,6 +16,20 @@ const dataUtils = {
     },
     isElementinBinSet(el, set){
         return Math.floor(set/el) % 2;
+    },
+    cammelCaseToUnderscore(str) {
+        return str.replace(/[A-Z]/g, m=>"_"+m.toLowerCase())
+    },
+    concatSubArrays(arr) {
+        var result = [];
+        function concat(el) {
+            if(Array.isArray(el))
+                el.forEach(sub=>concat(sub))
+            else
+                result.push(el)
+        }
+        arr.forEach(el=>concat(el));
+        return result;
     }
 }
 module.exports = dataUtils;

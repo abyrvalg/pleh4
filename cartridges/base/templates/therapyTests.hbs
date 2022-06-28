@@ -1,0 +1,43 @@
+<head>
+	<link rel="stylesheet" href="/css/style.css">
+</head>
+{{@async head() /}}
+<div id="test_table" data-component="therapyTests">
+    <div class="table_head">
+        <div class="table_cell">Имя</div> 
+        <div class="table_cell">Описание</div>
+    </div>
+     {{@each(it)=>test}}
+    <div>
+        <div class="table_cell name">{{test.name}}</div>
+        <div class="table_cell details">{{test.details}}</div>
+        <div class="table_cell edit"><input type="button" class="edit_test" data-id="{{test.id}}" value="Edit"/></div>
+        <div class="table_cell"><input type="button" class="delete_test" data-id="{{test.id}}" value="Delete"/></div>
+    </div>
+    {{/each}}
+    <input type="button" class="new_test" value="Новый"/> 
+</div>
+
+<script type="text/template" id="test_new_question">
+    <div class="test_question_container">
+        <input class="js-test_question updated" data-id="new" placeholder="вопрос"/>
+        <input type="button" class="js-new_question_option updated" value="добавить вариант"/>
+        <button class="remove_row">X</button>  
+        <div class="js-test_questions_options"></div>
+    </div>
+</script>
+<script type="text/template" id="new_question_option">
+    <div class="test_questions_options_container">
+        <input class="js-test_question_option_text updated" data-id="new" placeholder="вариант ответа"/>
+        <input class="js-test_question_option_points updated" type="number" placeholder="бал"/>
+        <button class="remove_row">X</button>  
+    </div>
+</script>
+
+<script type="text/template" id="test_new_transcript">
+    <div class="test_transcript_container">
+        <input class="js-test_transcript updated" data-id="new" placeholder="Описание"/>
+        <input class="js-test_transcript_frame updated" placeholder="Диапазон"/>
+        <button class="remove_row">X</button>  
+    </div>
+</script>
