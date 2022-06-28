@@ -59,39 +59,74 @@ function start() {
 		}
 		return ()=>{LOGGER.debug("resource:"+key+" is not found"); return null;}
 	});
-
-	app.all(/\w*\/data/, cors(), function(req, res){
+	app.all(/\w*\/(?:data|limbo)/, cors(), function(req, res){
 		try{
 			SESSION.get(req).catch(err=>{
 				LOGGER.error("Session error");
 				LOGGER.error(err);
 				res.send({});
 			}).then(session=>{
-				var	$ = new LiteQL(),			
-					query = req.query.query ? JSON.parse(req.query.query) : req.body;
+				var query = req.query.query || req.body,
 					locale = req.url.match(/^\/(\w{2})\//);
 				locale = locale && locale[1];
 				locale = locale || CONFIG.defaultLocale;
-				$.scope.session = session;
-				$.scope.req = req;
-				$.scope.res = res;
-				$.scope.locale = locale;
-				$.scope.$ = new LiteQL();
-				$.scope.$.scope.isServer = true;
-				$.scope.$.scope.session;
-				$.scope.$.scope.req;
-				$.scope.$.scope.res;
-				$.scope.$.scope.locale;
-				$.scope.$.scope.$ = $.scope.$;
-				$.call(query).then((result)=>{
-					session.updatePresistance().then(()=>res.send(result)).catch(err=>{
-						console.log("fdfdsfdsf");
-						LOGGER.error(err);
+				if((/limbo/).test(req.url)) {
+					let Limbo = require("./limbo"),
+						$ = new Limbo();
+					$.addHandler({
+						regExp : /\w+_\w+/,
+						define(method){
+							var match = method.split("_");
+							for(let i = 0; i < CONFIG.cartridgePath.length; i++){
+								try{
+									func = require('./cartridges/'+CONFIG.cartridgePath[i]+'/resources/'+(match && match[1].replace(/\./g, '/') || '/index'))[match && match[2] || 'index'];
+								}
+								catch(e){
+									LOGGER.debug(e);
+								}
+								if(func) {
+									return func
+								}
+							}
+							return (param)=>{
+								console.log(param);
+								return {};
+							}
+						}   
+					});
+					$.call(query).then(result=>{
+						session.updatePresistance().then(()=>res.send(result)).catch(err=>{
+							LOGGER.error(err);
+							return {success : false}
+						})
+					}).catch(e=>{
+						LOGGER.error(e);
 						return {success : false}
 					});
-				}).catch((e)=>{
-					LOGGER.error(e);
-				});
+				}
+				else {
+					let	$ = new LiteQL();					
+					$.scope.session = session;
+					$.scope.req = req;
+					$.scope.res = res;
+					$.scope.locale = locale;
+					$.scope.$ = new LiteQL();
+					$.scope.$.scope.isServer = true;
+					$.scope.$.scope.session;
+					$.scope.$.scope.req;
+					$.scope.$.scope.res;
+					$.scope.$.scope.locale;
+					$.scope.$.scope.$ = $.scope.$;
+					$.call(query).then((result)=>{
+						session.updatePresistance().then(()=>res.send(result)).catch(err=>{
+							LOGGER.error(err);
+							return {success : false}
+						});
+					}).catch((e)=>{
+						LOGGER.error(e);
+						return {success : false}
+					});
+				}
 			});	
 		}
 		catch(e){
