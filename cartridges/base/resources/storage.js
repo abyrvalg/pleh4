@@ -23,7 +23,7 @@ function getTherapists(params){
 		joins.push("left join "+scheme+".clients as c on c.therapist = t.id");
 	}
 	return STORAGE.get({query : "select "+fileds.join(", ")+" from "+scheme+".users as u "+joins.join(" ")+" \
-		"+(where.length ? +"where "+where.join(" and ") : ""), params : queryParams});
+		"+(where.length ? "where "+where.join(" and ") : ""), params : queryParams});
 }
 module.exports = {
 	therapists(params) {
