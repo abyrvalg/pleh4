@@ -85,7 +85,12 @@ function start() {
 									LOGGER.debug(e);
 								}
 								if(func) {
-									return func
+									return (param)=>func(param, {
+										req : req,
+										res : res,
+										session : session,
+										$ : $
+									})
 								}
 							}
 							return (param)=>{
